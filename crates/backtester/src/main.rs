@@ -134,7 +134,10 @@ fn main() {
             mid *= 1.0 + (((i * 17) % 7) as f64 - 3.0) * 0.0003;
             bars.push(Bar::new(i as i64 * 3600, mid, funding));
         }
-        print_result("funding_synth", &engine.run_funding(&bars, &FundingBacktestConfig::default()));
+        print_result(
+            "funding_synth",
+            &engine.run_funding(&bars, &FundingBacktestConfig::default()),
+        );
         // trend synth
         mid = 100.0;
         bars.clear();
@@ -178,8 +181,8 @@ fn main() {
         match cli.preset.to_ascii_lowercase().as_str() {
             "majors" | "b" => {
                 filter = vec![
-                    "BTC", "ETH", "SOL", "XRP", "BNB", "LINK", "AVAX", "DOGE", "ARB", "SUI",
-                    "LTC", "UNI", "AAVE", "TRX", "DOT", "ATOM", "NEAR", "APT", "OP", "HYPE",
+                    "BTC", "ETH", "SOL", "XRP", "BNB", "LINK", "AVAX", "DOGE", "ARB", "SUI", "LTC",
+                    "UNI", "AAVE", "TRX", "DOT", "ATOM", "NEAR", "APT", "OP", "HYPE",
                 ]
                 .into_iter()
                 .map(String::from)
@@ -306,13 +309,8 @@ fn main() {
     };
 
     if cli.prereg_only {
-        let desc = backtester::prereg::descriptor(
-            &series,
-            alpha,
-            &funding_grid,
-            &trend_grid,
-            &wf_opts,
-        );
+        let desc =
+            backtester::prereg::descriptor(&series, alpha, &funding_grid, &trend_grid, &wf_opts);
         let hash = backtester::prereg::hash(&desc);
         println!("{hash}");
         eprintln!(
@@ -324,13 +322,7 @@ fn main() {
         return;
     }
 
-    let report = run_walk_forward_opts(
-        &series,
-        alpha,
-        &funding_grid,
-        &trend_grid,
-        &wf_opts,
-    );
+    let report = run_walk_forward_opts(&series, alpha, &funding_grid, &trend_grid, &wf_opts);
 
     for f in &report.folds {
         info!(
@@ -346,7 +338,11 @@ fn main() {
     }
 
     info!("-------- OOS SUMMARY alpha={} --------", report.alpha);
-    info!("coins={} folds_total={}", report.n_coins, report.folds.len());
+    info!(
+        "coins={} folds_total={}",
+        report.n_coins,
+        report.folds.len()
+    );
     info!("test_total_pnl: ${:.2}", report.test_total_pnl);
     info!("test_avg_sharpe: {:.2}", report.test_avg_sharpe);
     info!("test_avg_max_dd: {:.1}%", report.test_avg_max_dd * 100.0);
@@ -390,16 +386,15 @@ fn main() {
     if let Some(h) = &report.holdout {
         info!(
             "HOLDOUT frac={} coins={} total_pnl={:.2} avg_sharpe={:.2} profitable={}/{}",
-            h.holdout_frac,
-            h.n_coins,
-            h.total_pnl,
-            h.avg_sharpe,
-            h.profitable_coins,
-            h.n_coins
+            h.holdout_frac, h.n_coins, h.total_pnl, h.avg_sharpe, h.profitable_coins, h.n_coins
         );
     }
 
-    if let Some(dsr) = report.deflated_sharpe_min.is_finite().then_some(report.deflated_sharpe_min) {
+    if let Some(dsr) = report
+        .deflated_sharpe_min
+        .is_finite()
+        .then_some(report.deflated_sharpe_min)
+    {
         if dsr <= 0.0 {
             info!("VERDICT: deflated Sharpe ≤ 0 – winner is indistinguishable from luck");
         }
@@ -431,7 +426,11 @@ fn main() {
             &path,
             serde_json::to_string_pretty(&report).unwrap_or_default(),
         );
-        info!("report → {} (schema {})", path.display(), report.schema_version);
+        info!(
+            "report → {} (schema {})",
+            path.display(),
+            report.schema_version
+        );
     }
 }
 

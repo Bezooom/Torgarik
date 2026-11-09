@@ -45,10 +45,7 @@ pub enum ProtectionBlock {
         window_hours: f64,
     },
     /// `coin` was closed recently and is still cooling down.
-    Cooldown {
-        coin: String,
-        remaining_secs: i64,
-    },
+    Cooldown { coin: String, remaining_secs: i64 },
     /// Portfolio equity is too far below the observed peak.
     MaxDrawdown { drawdown: f64, limit: f64 },
 }
@@ -75,7 +72,10 @@ impl std::fmt::Display for ProtectionBlock {
                 f,
                 "stoploss_guard: {coin} stopped {stops}x within {window_hours}h"
             ),
-            ProtectionBlock::Cooldown { coin, remaining_secs } => write!(
+            ProtectionBlock::Cooldown {
+                coin,
+                remaining_secs,
+            } => write!(
                 f,
                 "cooldown: {coin} closed recently, {remaining_secs}s left"
             ),
@@ -185,11 +185,7 @@ impl ProtectionState {
     }
 
     /// Drawdown guard, evaluated separately because it needs current equity.
-    pub fn check_equity(
-        &self,
-        equity: f64,
-        cfg: &ProtectionConfig,
-    ) -> Result<(), ProtectionBlock> {
+    pub fn check_equity(&self, equity: f64, cfg: &ProtectionConfig) -> Result<(), ProtectionBlock> {
         if cfg.max_drawdown_frac <= 0.0 || self.peak_equity <= 0.0 {
             return Ok(());
         }
@@ -243,7 +239,10 @@ impl ProtectionStore {
                     ProtectionState::default()
                 }
                 Err(e) => {
-                    warn!("protections: corrupt {}: {e} – starting empty", path.display());
+                    warn!(
+                        "protections: corrupt {}: {e} – starting empty",
+                        path.display()
+                    );
                     ProtectionState::default()
                 }
             },
@@ -372,7 +371,10 @@ mod tests {
 
         store.record_stop("ETH", now - Duration::minutes(10));
         let err = store.check_entry("ETH", now, 10_000.0, &cfg()).unwrap_err();
-        assert!(matches!(err, ProtectionBlock::StoplossGuard { stops: 2, .. }));
+        assert!(matches!(
+            err,
+            ProtectionBlock::StoplossGuard { stops: 2, .. }
+        ));
 
         // 25h later the stops fall out of the 24h window.
         let later = now + Duration::hours(25);
@@ -413,9 +415,7 @@ mod tests {
         store.observe_equity(10_000.0);
         assert!(store.check_entry("ETH", now, 9_500.0, &cfg()).is_ok());
 
-        let err = store
-            .check_entry("ETH", now, 8_900.0, &cfg())
-            .unwrap_err();
+        let err = store.check_entry("ETH", now, 8_900.0, &cfg()).unwrap_err();
         match err {
             ProtectionBlock::MaxDrawdown { drawdown, limit } => {
                 assert!((drawdown - 0.11).abs() < 1e-9, "{drawdown}");

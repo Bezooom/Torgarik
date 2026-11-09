@@ -60,11 +60,7 @@ impl KellyCriterion {
 
         // Kelly fraction: f = (bp - q) / b
         let numerator = b * p - q;
-        let kelly_full = if numerator > 0.0 {
-            numerator / b
-        } else {
-            0.0
-        };
+        let kelly_full = if numerator > 0.0 { numerator / b } else { 0.0 };
 
         let is_favourable = numerator > self.min_edge;
 

@@ -162,27 +162,25 @@ impl OosStats {
             }
         }
 
-        let (avg_pnl, avg_sharpe, n_folds, profitable_folds) = if !pnls.is_empty() && !sharpes.is_empty()
-        {
-            let n = pnls.len();
-            let fold_avg_pnl = pnls.iter().sum::<f64>() / n as f64;
-            let fold_avg_sharpe = if let Some(s) = top_sharpe {
-                s
+        let (avg_pnl, avg_sharpe, n_folds, profitable_folds) =
+            if !pnls.is_empty() && !sharpes.is_empty() {
+                let n = pnls.len();
+                let fold_avg_pnl = pnls.iter().sum::<f64>() / n as f64;
+                let fold_avg_sharpe = if let Some(s) = top_sharpe {
+                    s
+                } else {
+                    sharpes.iter().sum::<f64>() / sharpes.len() as f64
+                };
+                let profitable =
+                    top_profitable.unwrap_or_else(|| pnls.iter().filter(|p| **p > 0.0).count());
+                (fold_avg_pnl, fold_avg_sharpe, n, profitable)
+            } else if let (Some(s), Some(p)) = (top_sharpe, top_total_pnl) {
+                // No per-fold rows – use top-level only.
+                let n = parsed.get("n_folds").and_then(|v| v.as_u64()).unwrap_or(1) as usize;
+                (p, s, n.max(1), top_profitable.unwrap_or(0))
             } else {
-                sharpes.iter().sum::<f64>() / sharpes.len() as f64
+                return None;
             };
-            let profitable = top_profitable.unwrap_or_else(|| pnls.iter().filter(|p| **p > 0.0).count());
-            (fold_avg_pnl, fold_avg_sharpe, n, profitable)
-        } else if let (Some(s), Some(p)) = (top_sharpe, top_total_pnl) {
-            // No per-fold rows – use top-level only.
-            let n = parsed
-                .get("n_folds")
-                .and_then(|v| v.as_u64())
-                .unwrap_or(1) as usize;
-            (p, s, n.max(1), top_profitable.unwrap_or(0))
-        } else {
-            return None;
-        };
 
         // Require a minimal sample when only folds are used without top-level.
         if top_sharpe.is_none() && top_total_pnl.is_none() && n_folds < 3 {
@@ -273,7 +271,10 @@ impl OosStats {
         if oos.min_profitable_fold_ratio > 0.0 {
             let ratio = self.profitable_folds as f64 / self.n_folds.max(1) as f64;
             if !ratio.is_finite() || ratio < oos.min_profitable_fold_ratio {
-                out.push(format!("profitable_folds {ratio:.2} < {}", oos.min_profitable_fold_ratio));
+                out.push(format!(
+                    "profitable_folds {ratio:.2} < {}",
+                    oos.min_profitable_fold_ratio
+                ));
             }
         }
         if let Some(dsr) = self.deflated_sharpe {
@@ -304,7 +305,6 @@ fn holdout_is_red(h: &serde_json::Value) -> bool {
     // NaN/Inf must not pass as "green" (`NaN < 0.0` is false in IEEE-754).
     metric_below_floor(pnl, 0.0) || metric_below_floor(sh, 0.0)
 }
-
 
 /// Network mode: live trading, dry-run (paper), or backtest.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -713,16 +713,16 @@ impl Default for Settings {
                 wallet_address: String::new(),
                 allow_synthetic: false,
             },
-                risk: RiskSettings {
-                    max_portfolio_exposure: 0.4,
-                    max_position_per_instrument: 0.1,
-                    max_daily_loss: 0.03,
-                    stop_loss: 0.10,
-                    use_exchange_balance: true,
-                    starting_bankroll: default_bankroll(),
-                    confidence_decay_lambda: default_decay_lambda(),
-                    protections: ProtectionConfig::default(),
-                },
+            risk: RiskSettings {
+                max_portfolio_exposure: 0.4,
+                max_position_per_instrument: 0.1,
+                max_daily_loss: 0.03,
+                stop_loss: 0.10,
+                use_exchange_balance: true,
+                starting_bankroll: default_bankroll(),
+                confidence_decay_lambda: default_decay_lambda(),
+                protections: ProtectionConfig::default(),
+            },
             strategy: StrategySettings {
                 name: default_strategy_name(),
                 funding_enter: default_funding_enter(),
@@ -987,7 +987,9 @@ mod tests {
         assert!(!green.is_blocking());
         let err = s.validate_with_oos(Some(&green)).unwrap_err().to_string();
         assert!(
-            err.contains("CONFIRM_LIVE") || err.contains("WALLET_PRIVATE_KEY") || err.contains("HL_API"),
+            err.contains("CONFIRM_LIVE")
+                || err.contains("WALLET_PRIVATE_KEY")
+                || err.contains("HL_API"),
             "unexpected: {err}"
         );
     }
@@ -1116,11 +1118,19 @@ mod tests {
 
     #[test]
     fn holdout_is_red_on_negative_or_non_finite() {
-        assert!(holdout_is_red(&json!({"total_pnl": -1.0, "avg_sharpe": 0.5})));
-        assert!(holdout_is_red(&json!({"total_pnl": 1.0, "avg_sharpe": -0.1})));
-        assert!(!holdout_is_red(&json!({"total_pnl": 1.0, "avg_sharpe": 0.1})));
+        assert!(holdout_is_red(
+            &json!({"total_pnl": -1.0, "avg_sharpe": 0.5})
+        ));
+        assert!(holdout_is_red(
+            &json!({"total_pnl": 1.0, "avg_sharpe": -0.1})
+        ));
+        assert!(!holdout_is_red(
+            &json!({"total_pnl": 1.0, "avg_sharpe": 0.1})
+        ));
         // Missing fields → 0.0 floor (not strictly red); null → same.
-        assert!(!holdout_is_red(&json!({"total_pnl": 0.0, "avg_sharpe": 0.0})));
+        assert!(!holdout_is_red(
+            &json!({"total_pnl": 0.0, "avg_sharpe": 0.0})
+        ));
     }
 
     #[test]

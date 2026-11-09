@@ -8,7 +8,9 @@ use serde::{Deserialize, Serialize};
 
 macro_rules! define_id {
     ($name:ident, $prefix:literal) => {
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+        #[derive(
+            Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize,
+        )]
         #[serde(transparent)]
         pub struct $name([u8; 16]);
 

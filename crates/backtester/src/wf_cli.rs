@@ -115,7 +115,12 @@ pub fn run_walk_forward_cli(args: &WalkForwardCli) -> anyhow::Result<WalkForward
         let holdout_s = report
             .holdout
             .as_ref()
-            .map(|h| format!(" holdout_pnl={:.2} holdout_sharpe={:.3}", h.total_pnl, h.avg_sharpe))
+            .map(|h| {
+                format!(
+                    " holdout_pnl={:.2} holdout_sharpe={:.3}",
+                    h.total_pnl, h.avg_sharpe
+                )
+            })
             .unwrap_or_default();
         println!(
             "Walk-forward [{alpha}] {n_coins} coins × {n_folds} folds → \

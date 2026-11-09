@@ -239,7 +239,11 @@ mod tests {
                 &full.signal[..k],
                 "prefix {k} diverged"
             );
-            assert_eq!(&prefix.vol_ok[..k], &full.vol_ok[..k], "vol_ok {k} diverged");
+            assert_eq!(
+                &prefix.vol_ok[..k],
+                &full.vol_ok[..k],
+                "vol_ok {k} diverged"
+            );
         }
     }
 
@@ -258,7 +262,13 @@ mod tests {
 
     #[test]
     fn funding_plan_ignores_non_finite_bars() {
-        let s = funding_plan(&[0.0005, f64::NAN, 0.0005], &FundingParams { enter: 0.0001, exit: 0.00001 });
+        let s = funding_plan(
+            &[0.0005, f64::NAN, 0.0005],
+            &FundingParams {
+                enter: 0.0001,
+                exit: 0.00001,
+            },
+        );
         assert_eq!(s, vec![-1.0, -1.0, -1.0]);
     }
 }

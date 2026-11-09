@@ -299,7 +299,10 @@ pub async fn run_bot(cfg: BotConfig) -> anyhow::Result<()> {
             .send()
             .await;
         let updates = match resp {
-            Ok(r) => r.json::<Updates>().await.unwrap_or(Updates { result: vec![] }),
+            Ok(r) => r
+                .json::<Updates>()
+                .await
+                .unwrap_or(Updates { result: vec![] }),
             Err(e) => {
                 warn!("telegram getUpdates: {e}");
                 tokio::time::sleep(std::time::Duration::from_secs(5)).await;
@@ -444,7 +447,11 @@ mod tests {
     #[test]
     fn unknown_command_answers_with_help_hint() {
         let path = tmp("unknown");
-        let (reply, changed) = respond(&Command::Unknown("boom".into()), &StatusSnapshot::default(), &path);
+        let (reply, changed) = respond(
+            &Command::Unknown("boom".into()),
+            &StatusSnapshot::default(),
+            &path,
+        );
         assert!(!changed);
         assert!(reply.contains("/help"));
     }

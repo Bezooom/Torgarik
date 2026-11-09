@@ -165,7 +165,9 @@ impl PortfolioSnapshot {
     }
 
     pub fn position_for(&self, instrument_id: &str) -> Option<&Position> {
-        self.positions.iter().find(|p| p.instrument_id == instrument_id)
+        self.positions
+            .iter()
+            .find(|p| p.instrument_id == instrument_id)
     }
 }
 

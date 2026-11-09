@@ -262,11 +262,7 @@ impl BacktestEngine {
     /// is rejected here, regardless of how it is written.
     ///
     /// Returns the number of probes checked, or every mismatch found.
-    pub fn audit_causality<F>(
-        bars: &[Bar],
-        probes: usize,
-        compute: F,
-    ) -> Result<usize, Vec<String>>
+    pub fn audit_causality<F>(bars: &[Bar], probes: usize, compute: F) -> Result<usize, Vec<String>>
     where
         F: Fn(&[Bar]) -> SignalPlan,
     {
@@ -647,7 +643,11 @@ mod tests {
             signal: (0..b.len())
                 .map(|i| {
                     let next = b.get(i + 1).map(|x| x.mid).unwrap_or(b[i].mid);
-                    if next > b[i].mid { 1.0 } else { -1.0 }
+                    if next > b[i].mid {
+                        1.0
+                    } else {
+                        -1.0
+                    }
                 })
                 .collect(),
             vol_ok: None,

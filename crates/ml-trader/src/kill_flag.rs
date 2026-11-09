@@ -40,11 +40,7 @@ pub fn set(path: &Path, reason: &str) -> std::io::Result<()> {
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)?;
     }
-    let clean: String = reason
-        .replace('\n', " ")
-        .chars()
-        .take(200)
-        .collect();
+    let clean: String = reason.replace('\n', " ").chars().take(200).collect();
     std::fs::write(path, format!("{clean}\n"))
 }
 

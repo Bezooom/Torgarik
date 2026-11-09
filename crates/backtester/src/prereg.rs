@@ -14,7 +14,7 @@
 //! cargo run -p backtester -- --walk-forward --alpha trend --preset ethsol --prereg-only
 //! # 2. later runs must reproduce it
 //! cargo run -p backtester -- --walk-forward --alpha trend --preset ethsol \
-//!   --prereg-expect 3f9c... 
+//!   --prereg-expect 3f9c...
 //! ```
 //!
 //! A mismatch means the hypothesis or the data changed after the fact, which is
@@ -137,7 +137,9 @@ mod tests {
     use super::*;
 
     fn bars(n: usize) -> Vec<Bar> {
-        (0..n).map(|i| Bar::new(i as i64 * 3600, 100.0 + i as f64, 0.0)).collect()
+        (0..n)
+            .map(|i| Bar::new(i as i64 * 3600, 100.0 + i as f64, 0.0))
+            .collect()
     }
 
     fn opts() -> WfOptions {
@@ -204,7 +206,10 @@ mod tests {
     fn verify_reports_a_mismatch() {
         let h = hash(&desc());
         assert!(verify(&h, &h).is_ok());
-        assert!(verify(&format!(" {h} "), &h).is_ok(), "whitespace tolerated");
+        assert!(
+            verify(&format!(" {h} "), &h).is_ok(),
+            "whitespace tolerated"
+        );
         let err = verify("sha3:00", &h).expect_err("mismatch");
         assert!(err.contains("mismatch") && err.contains("sha3:00"), "{err}");
     }

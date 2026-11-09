@@ -33,9 +33,7 @@ impl Journal {
     }
 
     pub fn new(dir: impl Into<PathBuf>) -> Self {
-        Self {
-            dir: dir.into(),
-        }
+        Self { dir: dir.into() }
     }
 
     fn path(&self) -> PathBuf {
@@ -52,7 +50,10 @@ impl Journal {
     /// Write a kill-switch state-change entry.
     pub fn log_kill_switch(&self, entry: &OosKillSwitchEntry) -> anyhow::Result<()> {
         self.ensure_dir()?;
-        let mut f = OpenOptions::new().create(true).append(true).open(self.path())?;
+        let mut f = OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(self.path())?;
         writeln!(f, "{}", serde_json::to_string(entry)?)?;
         Ok(())
     }

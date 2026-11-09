@@ -152,13 +152,7 @@ pub fn sharpe_per_obs(returns: &[f64]) -> f64 {
 
 /// Probabilistic Sharpe Ratio: probability that the true Sharpe exceeds
 /// `benchmark` given the sample moments (Bailey & Lopez de Prado, 2012).
-pub fn probabilistic_sharpe(
-    sr: f64,
-    n: usize,
-    skew: f64,
-    kurt: f64,
-    benchmark: f64,
-) -> f64 {
+pub fn probabilistic_sharpe(sr: f64, n: usize, skew: f64, kurt: f64, benchmark: f64) -> f64 {
     if n < 2 || !sr.is_finite() || !skew.is_finite() || !kurt.is_finite() {
         return f64::NAN;
     }
@@ -205,8 +199,7 @@ pub fn sharpe_variance(trial_sharpes: &[f64]) -> f64 {
         return 0.0;
     }
     let m = mean(trial_sharpes);
-    trial_sharpes.iter().map(|s| (s - m).powi(2)).sum::<f64>()
-        / (trial_sharpes.len() - 1) as f64
+    trial_sharpes.iter().map(|s| (s - m).powi(2)).sum::<f64>() / (trial_sharpes.len() - 1) as f64
 }
 
 /// Combinatorially Symmetric Cross-Validation: probability of backtest
@@ -237,7 +230,13 @@ pub fn cscv_pbo(matrix: &[Vec<f64>], s: usize) -> Option<f64> {
     let half = s / 2;
     let mut combos: Vec<Vec<usize>> = Vec::new();
     let mut current: Vec<usize> = Vec::with_capacity(half);
-    fn walk(start: usize, s: usize, half: usize, current: &mut Vec<usize>, out: &mut Vec<Vec<usize>>) {
+    fn walk(
+        start: usize,
+        s: usize,
+        half: usize,
+        current: &mut Vec<usize>,
+        out: &mut Vec<Vec<usize>>,
+    ) {
         if current.len() == half {
             out.push(current.clone());
             return;
@@ -271,11 +270,7 @@ pub fn cscv_pbo(matrix: &[Vec<f64>], s: usize) -> Option<f64> {
         }
         let is_sr: Vec<f64> = is_ret.iter().map(|r| sharpe_per_obs(r)).collect();
         let oos_sr: Vec<f64> = oos_ret.iter().map(|r| sharpe_per_obs(r)).collect();
-        let Some((best, _)) = is_sr
-            .iter()
-            .enumerate()
-            .max_by(|a, b| a.1.total_cmp(b.1))
-        else {
+        let Some((best, _)) = is_sr.iter().enumerate().max_by(|a, b| a.1.total_cmp(b.1)) else {
             continue;
         };
         // Rank of the in-sample winner among out-of-sample Sharpes, 1 = worst.
@@ -414,6 +409,9 @@ mod tests {
         assert!(cscv_pbo(&one_trial, 10).is_none(), "one trial");
         let many = vec![vec![0.1, 0.2]; 100];
         assert!(cscv_pbo(&many, 3).is_none(), "odd s");
-        assert!(cscv_pbo(&[vec![0.1, 0.2], vec![0.1]], 10).is_none(), "ragged");
+        assert!(
+            cscv_pbo(&[vec![0.1, 0.2], vec![0.1]], 10).is_none(),
+            "ragged"
+        );
     }
 }

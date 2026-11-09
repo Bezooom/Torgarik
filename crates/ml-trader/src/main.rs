@@ -59,9 +59,8 @@ const BANNER: &str = r#"
 async fn main() -> Result<()> {
     println!("{BANNER}");
     let cli = Cli::parse();
-    let filter = std::env::var("RUST_LOG").unwrap_or_else(|_| {
-        "ml_trader=info,trading_exchange=info,trading_strategies=info".into()
-    });
+    let filter = std::env::var("RUST_LOG")
+        .unwrap_or_else(|_| "ml_trader=info,trading_exchange=info,trading_strategies=info".into());
     tracing_subscriber::registry()
         .with(fmt::layer())
         .with(EnvFilter::new(filter))
@@ -150,7 +149,8 @@ fn run_signals_mode(cli: &Cli) -> Result<()> {
                 emitted += 1;
                 info!(
                     "{coin}: {} ({} bars, source=trend_plan)",
-                    line.side, mids.len()
+                    line.side,
+                    mids.len()
                 );
             }
             None => info!("{coin}: flat ({} bars) — no signal", mids.len()),

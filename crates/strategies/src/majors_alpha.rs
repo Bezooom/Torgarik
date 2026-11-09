@@ -164,14 +164,17 @@ impl MajorsAlphaStrategy {
         let min_notional = self.cfg.min_notional;
         let max_pos = self.filter.max_positions;
 
-        let st = self.state.entry(coin.to_string()).or_insert_with(|| CoinState {
-            mids: VecDeque::new(),
-            ema_f: None,
-            ema_s: None,
-            last_bar_ts: None,
-            pending_side: None,
-            pending_flat: false,
-        });
+        let st = self
+            .state
+            .entry(coin.to_string())
+            .or_insert_with(|| CoinState {
+                mids: VecDeque::new(),
+                ema_f: None,
+                ema_s: None,
+                last_bar_ts: None,
+                pending_side: None,
+                pending_flat: false,
+            });
 
         // Execute pending from previous bar first
         let pending_side = st.pending_side;
@@ -273,7 +276,10 @@ impl MajorsAlphaStrategy {
                     opposite(p.side),
                     p.size,
                     true,
-                    format!("majors_alpha next_bar flip close {:?}→{:?} {coin}", p.side, want),
+                    format!(
+                        "majors_alpha next_bar flip close {:?}→{:?} {coin}",
+                        p.side, want
+                    ),
                 ));
             }
             if portfolio.positions.len() >= max_pos {
@@ -373,14 +379,17 @@ impl Strategy for MajorsAlphaStrategy {
 
         // Mark bar ts then process new bar
         {
-            let st = self.state.entry(coin.to_string()).or_insert_with(|| CoinState {
-                mids: VecDeque::new(),
-                ema_f: None,
-                ema_s: None,
-                last_bar_ts: None,
-                pending_side: None,
-                pending_flat: false,
-            });
+            let st = self
+                .state
+                .entry(coin.to_string())
+                .or_insert_with(|| CoinState {
+                    mids: VecDeque::new(),
+                    ema_f: None,
+                    ema_s: None,
+                    last_bar_ts: None,
+                    pending_side: None,
+                    pending_flat: false,
+                });
             st.last_bar_ts = Some(bar_ts);
         }
 

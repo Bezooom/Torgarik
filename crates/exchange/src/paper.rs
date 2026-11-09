@@ -502,7 +502,10 @@ mod tests {
         {
             let paper =
                 PaperExchange::persistent(inner.clone(), 10_000.0, PaperFees::default(), &path);
-            paper.place_order(&entry(OrderSide::Buy, 2.0)).await.unwrap();
+            paper
+                .place_order(&entry(OrderSide::Buy, 2.0))
+                .await
+                .unwrap();
             cash_after_fill = paper.portfolio().await.unwrap().available;
         }
         // Fresh process, same file: the position must be back, not zeroed.
@@ -511,7 +514,10 @@ mod tests {
         assert_eq!(port.positions.len(), 1, "position restored");
         assert_eq!(port.positions[0].instrument_id, "BTC");
         assert_eq!(port.positions[0].size, 2.0);
-        assert!((port.available - cash_after_fill).abs() < 1e-9, "cash restored");
+        assert!(
+            (port.available - cash_after_fill).abs() < 1e-9,
+            "cash restored"
+        );
         // Bankroll argument must NOT reset an existing book.
         assert!((port.available - 10_000.0).abs() > 1e-9);
         let _ = std::fs::remove_dir_all(path.parent().unwrap());

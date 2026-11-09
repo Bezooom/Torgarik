@@ -13,10 +13,7 @@ pub enum TradingError {
     InvalidOrder(String),
 
     #[error("Insufficient margin: required={required}, available={available}")]
-    InsufficientMargin {
-        required: f64,
-        available: f64,
-    },
+    InsufficientMargin { required: f64, available: f64 },
 
     #[error("Rate limit exceeded for {0}")]
     RateLimit(String),

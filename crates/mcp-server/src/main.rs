@@ -89,8 +89,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 },
             };
 
-            let out_str = serde_json::to_string(&response)
-                .map_err(|e| format!("serialize response: {e}"))?;
+            let out_str =
+                serde_json::to_string(&response).map_err(|e| format!("serialize response: {e}"))?;
             writeln!(stdout, "{out_str}")?;
             stdout.flush()?;
         }
@@ -175,8 +175,8 @@ async fn handle_mcp_request(req: &JsonRpcRequest, state: &mut AppState) -> Resul
                         .list_instruments()
                         .await
                         .map_err(|e| e.to_string())?;
-                    let text = serde_json::to_string_pretty(&instruments)
-                        .map_err(|e| e.to_string())?;
+                    let text =
+                        serde_json::to_string_pretty(&instruments).map_err(|e| e.to_string())?;
                     Ok(json!({ "content": [{ "type": "text", "text": text }] }))
                 }
                 "get_quote" => {
@@ -195,14 +195,8 @@ async fn handle_mcp_request(req: &JsonRpcRequest, state: &mut AppState) -> Resul
                     Ok(json!({ "content": [{ "type": "text", "text": text }] }))
                 }
                 "rank_funding" => {
-                    let limit = args
-                        .get("limit")
-                        .and_then(|v| v.as_u64())
-                        .unwrap_or(10) as usize;
-                    let min_oi = args
-                        .get("min_oi")
-                        .and_then(|v| v.as_f64())
-                        .unwrap_or(0.0);
+                    let limit = args.get("limit").and_then(|v| v.as_u64()).unwrap_or(10) as usize;
+                    let min_oi = args.get("min_oi").and_then(|v| v.as_f64()).unwrap_or(0.0);
                     let min_abs = args
                         .get("min_abs_funding")
                         .and_then(|v| v.as_f64())
@@ -218,11 +212,10 @@ async fn handle_mcp_request(req: &JsonRpcRequest, state: &mut AppState) -> Resul
                     Ok(json!({ "content": [{ "type": "text", "text": text }] }))
                 }
                 "get_portfolio" => {
-                    let portfolio: PortfolioSnapshot = state
-                        .exchange
-                        .portfolio()
-                        .await
-                        .unwrap_or_else(|_| PortfolioSnapshot::empty(VenueKind::Hyperliquid, 0.0));
+                    let portfolio: PortfolioSnapshot =
+                        state.exchange.portfolio().await.unwrap_or_else(|_| {
+                            PortfolioSnapshot::empty(VenueKind::Hyperliquid, 0.0)
+                        });
                     let text =
                         serde_json::to_string_pretty(&portfolio).map_err(|e| e.to_string())?;
                     Ok(json!({ "content": [{ "type": "text", "text": text }] }))
@@ -233,10 +226,7 @@ async fn handle_mcp_request(req: &JsonRpcRequest, state: &mut AppState) -> Resul
                     Ok(json!({ "content": [{ "type": "text", "text": text }] }))
                 }
                 "get_shell_status" => {
-                    let tail = args
-                        .get("tail")
-                        .and_then(|v| v.as_u64())
-                        .unwrap_or(20) as usize;
+                    let tail = args.get("tail").and_then(|v| v.as_u64()).unwrap_or(20) as usize;
                     let payload = shell_status_json(tail);
                     let text = serde_json::to_string_pretty(&payload).map_err(|e| e.to_string())?;
                     Ok(json!({ "content": [{ "type": "text", "text": text }] }))

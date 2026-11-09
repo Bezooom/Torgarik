@@ -212,7 +212,11 @@ fn pick_trend(
             bs = slow;
         }
     }
-    (bf as f64 + (bs as f64) / 1000.0, format!("ema={bf}/{bs}"), best)
+    (
+        bf as f64 + (bs as f64) / 1000.0,
+        format!("ema={bf}/{bs}"),
+        best,
+    )
 }
 
 /// Pick funding enter by out-of-sample inner validation: optimize on a held-out
@@ -236,14 +240,17 @@ fn pick_funding_cv(
         let e = grid.enter_grid[0];
         (
             engine.run_funding(inner_train, &funding_cfg(e, grid)),
-            engine.run_funding(inner_val, &funding_cfg(e, grid)).total_pnl,
+            engine
+                .run_funding(inner_val, &funding_cfg(e, grid))
+                .total_pnl,
         )
     };
     for &enter in &grid.enter_grid {
         let train_res = engine.run_funding(inner_train, &funding_cfg(enter, grid));
         let val_res = engine.run_funding(inner_val, &funding_cfg(enter, grid));
         if val_res.total_pnl > best_val_pnl + 1e-9
-            || ((val_res.total_pnl - best_val_pnl).abs() < 1e-9 && train_res.total_pnl > best_train.total_pnl)
+            || ((val_res.total_pnl - best_val_pnl).abs() < 1e-9
+                && train_res.total_pnl > best_train.total_pnl)
         {
             best_val_pnl = val_res.total_pnl;
             best_train = train_res;
@@ -271,14 +278,17 @@ fn pick_trend_cv(
         let (f, s) = grid.pairs[0];
         (
             engine.run_trend(inner_train, &trend_cfg(f, s, grid)),
-            engine.run_trend(inner_val, &trend_cfg(f, s, grid)).total_pnl,
+            engine
+                .run_trend(inner_val, &trend_cfg(f, s, grid))
+                .total_pnl,
         )
     };
     for &(fast, slow) in &grid.pairs {
         let train_res = engine.run_trend(inner_train, &trend_cfg(fast, slow, grid));
         let val_res = engine.run_trend(inner_val, &trend_cfg(fast, slow, grid));
         if val_res.total_pnl > best_val_pnl + 1e-9
-            || ((val_res.total_pnl - best_val_pnl).abs() < 1e-9 && train_res.total_pnl > best_train.total_pnl)
+            || ((val_res.total_pnl - best_val_pnl).abs() < 1e-9
+                && train_res.total_pnl > best_train.total_pnl)
         {
             best_val_pnl = val_res.total_pnl;
             best_train = train_res;

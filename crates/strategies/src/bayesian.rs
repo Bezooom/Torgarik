@@ -49,10 +49,7 @@ impl BetaBelief {
         let var = self.variance();
         let std = var.sqrt();
         let (lower, upper) = (mean - 1.96 * std, mean + 1.96 * std);
-        (
-            lower.clamp(0.0, 1.0),
-            upper.clamp(0.0, 1.0),
-        )
+        (lower.clamp(0.0, 1.0), upper.clamp(0.0, 1.0))
     }
 
     /// Update belief with a single Bernoulli observation.
@@ -156,7 +153,12 @@ mod tests {
         b.decay(0.1, 10.0);
 
         let new_mean = b.mean();
-        assert!(b.n() < original_n, "n should shrink, got {} vs {}", b.n(), original_n);
+        assert!(
+            b.n() < original_n,
+            "n should shrink, got {} vs {}",
+            b.n(),
+            original_n
+        );
         // Mean should be closer to 0.5 than before
         assert!((new_mean - 0.5).abs() < (original_mean - 0.5).abs());
     }

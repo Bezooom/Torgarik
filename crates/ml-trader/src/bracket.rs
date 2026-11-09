@@ -51,10 +51,7 @@ impl BracketParams {
                 }
             }
         }
-        for (name, v) in [
-            ("sl_price", self.sl_price),
-            ("tp_price", self.tp_price),
-        ] {
+        for (name, v) in [("sl_price", self.sl_price), ("tp_price", self.tp_price)] {
             if let Some(v) = v {
                 if !v.is_finite() || v <= 0.0 {
                     return Err(format!("{name}={v} must be finite > 0"));
@@ -175,9 +172,7 @@ pub struct Bracket {
 impl Bracket {
     /// Representative level for journal events without a specific trigger.
     pub fn repr_level(&self) -> f64 {
-        self.sl_price
-            .or(self.tp_price)
-            .unwrap_or(self.entry_price)
+        self.sl_price.or(self.tp_price).unwrap_or(self.entry_price)
     }
 }
 
@@ -291,7 +286,11 @@ impl BracketStore {
             return;
         }
         if let Err(e) = std::fs::rename(&tmp, &self.path) {
-            warn!("brackets rename {}→{}: {e}", tmp.display(), self.path.display());
+            warn!(
+                "brackets rename {}→{}: {e}",
+                tmp.display(),
+                self.path.display()
+            );
         }
     }
 }
@@ -308,7 +307,11 @@ mod tests {
     const EPS: f64 = 1e-9;
 
     fn params(sl_pct: Option<f64>, tp_pct: Option<f64>) -> BracketParams {
-        BracketParams { sl_pct, tp_pct, ..Default::default() }
+        BracketParams {
+            sl_pct,
+            tp_pct,
+            ..Default::default()
+        }
     }
 
     fn bracket(coin: &str, side: OrderSide) -> Bracket {
@@ -423,13 +426,25 @@ mod tests {
         // Boundary 0.5 is allowed.
         assert!(build_levels(OrderSide::Buy, 100.0, params(Some(0.5), Some(0.5))).is_ok());
 
-        let bad_price = BracketParams { sl_price: Some(0.0), ..Default::default() };
+        let bad_price = BracketParams {
+            sl_price: Some(0.0),
+            ..Default::default()
+        };
         assert!(build_levels(OrderSide::Sell, 100.0, bad_price).is_err());
-        let neg = BracketParams { tp_price: Some(-3.0), ..Default::default() };
+        let neg = BracketParams {
+            tp_price: Some(-3.0),
+            ..Default::default()
+        };
         assert!(build_levels(OrderSide::Sell, 100.0, neg).is_err());
-        let nan = BracketParams { tp_price: Some(f64::NAN), ..Default::default() };
+        let nan = BracketParams {
+            tp_price: Some(f64::NAN),
+            ..Default::default()
+        };
         assert!(build_levels(OrderSide::Sell, 100.0, nan).is_err());
-        let inf = BracketParams { sl_price: Some(f64::INFINITY), ..Default::default() };
+        let inf = BracketParams {
+            sl_price: Some(f64::INFINITY),
+            ..Default::default()
+        };
         assert!(build_levels(OrderSide::Buy, 100.0, inf).is_err());
 
         // Bad entry rejected too.
@@ -439,11 +454,23 @@ mod tests {
     #[test]
     fn triggers_long_side() {
         let (sl, tp) = (Some(98.0_f64), Some(105.0_f64));
-        assert_eq!(trigger_for(OrderSide::Buy, 97.99, sl, tp), Some(BracketAction::StopLoss));
-        assert_eq!(trigger_for(OrderSide::Buy, 98.0, sl, tp), Some(BracketAction::StopLoss));
+        assert_eq!(
+            trigger_for(OrderSide::Buy, 97.99, sl, tp),
+            Some(BracketAction::StopLoss)
+        );
+        assert_eq!(
+            trigger_for(OrderSide::Buy, 98.0, sl, tp),
+            Some(BracketAction::StopLoss)
+        );
         assert_eq!(trigger_for(OrderSide::Buy, 100.0, sl, tp), None);
-        assert_eq!(trigger_for(OrderSide::Buy, 105.0, sl, tp), Some(BracketAction::TakeProfit));
-        assert_eq!(trigger_for(OrderSide::Buy, 200.0, sl, tp), Some(BracketAction::TakeProfit));
+        assert_eq!(
+            trigger_for(OrderSide::Buy, 105.0, sl, tp),
+            Some(BracketAction::TakeProfit)
+        );
+        assert_eq!(
+            trigger_for(OrderSide::Buy, 200.0, sl, tp),
+            Some(BracketAction::TakeProfit)
+        );
         assert_eq!(trigger_for(OrderSide::Buy, 0.0, sl, tp), None);
         assert_eq!(trigger_for(OrderSide::Buy, f64::NAN, sl, tp), None);
         // Missing legs never fire.
@@ -454,11 +481,23 @@ mod tests {
     #[test]
     fn triggers_short_side() {
         let (sl, tp) = (Some(102.0_f64), Some(95.0_f64));
-        assert_eq!(trigger_for(OrderSide::Sell, 102.0, sl, tp), Some(BracketAction::StopLoss));
-        assert_eq!(trigger_for(OrderSide::Sell, 150.0, sl, tp), Some(BracketAction::StopLoss));
+        assert_eq!(
+            trigger_for(OrderSide::Sell, 102.0, sl, tp),
+            Some(BracketAction::StopLoss)
+        );
+        assert_eq!(
+            trigger_for(OrderSide::Sell, 150.0, sl, tp),
+            Some(BracketAction::StopLoss)
+        );
         assert_eq!(trigger_for(OrderSide::Sell, 96.0, sl, tp), None);
-        assert_eq!(trigger_for(OrderSide::Sell, 95.0, sl, tp), Some(BracketAction::TakeProfit));
-        assert_eq!(trigger_for(OrderSide::Sell, 10.0, sl, tp), Some(BracketAction::TakeProfit));
+        assert_eq!(
+            trigger_for(OrderSide::Sell, 95.0, sl, tp),
+            Some(BracketAction::TakeProfit)
+        );
+        assert_eq!(
+            trigger_for(OrderSide::Sell, 10.0, sl, tp),
+            Some(BracketAction::TakeProfit)
+        );
     }
 
     #[test]

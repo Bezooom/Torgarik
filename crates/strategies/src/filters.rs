@@ -119,8 +119,8 @@ pub fn default_blacklist() -> Vec<String> {
 /// Hard-gate allowlist: only these coins may ever enter Live/Paper trading
 /// after an OOS kill-switch event. Memes are excluded by default.
 pub const ALLOWLIST: &[&str] = &[
-    "BTC", "ETH", "SOL", "XRP", "BNB", "AVAX", "LINK", "UNI", "AAVE",
-    "DOT", "APT", "NEAR", "ATOM", "LTC", "BCH", "TON", "HYPE",
+    "BTC", "ETH", "SOL", "XRP", "BNB", "AVAX", "LINK", "UNI", "AAVE", "DOT", "APT", "NEAR", "ATOM",
+    "LTC", "BCH", "TON", "HYPE",
 ];
 
 /// Current OOS kill-switch state, read from `data/reports/wf_latest.json`.
@@ -174,9 +174,7 @@ impl UniverseFilter {
     }
 
     fn is_allowlisted(&self, coin: &str) -> bool {
-        self.allowlist
-            .iter()
-            .any(|a| a.eq_ignore_ascii_case(coin))
+        self.allowlist.iter().any(|a| a.eq_ignore_ascii_case(coin))
     }
 
     /// Coin-level gate (mode + blacklist/allowlist). Liquidity checked separately.
@@ -209,16 +207,17 @@ impl UniverseFilter {
     }
 
     /// Filter ranked opportunities: (coin, funding, mid, oi_coins).
-    pub fn filter_ranked(
-        &self,
-        rows: &[(String, f64, f64, f64)],
-    ) -> Vec<(String, f64, f64, f64)> {
+    pub fn filter_ranked(&self, rows: &[(String, f64, f64, f64)]) -> Vec<(String, f64, f64, f64)> {
         let mut out: Vec<_> = rows
             .iter()
             .filter(|(c, f, m, oi)| self.allows(c, *m, *oi, *f))
             .cloned()
             .collect();
-        out.sort_by(|a, b| b.1.abs().partial_cmp(&a.1.abs()).unwrap_or(std::cmp::Ordering::Equal));
+        out.sort_by(|a, b| {
+            b.1.abs()
+                .partial_cmp(&a.1.abs())
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
         out.truncate(self.top_n.max(1));
         out
     }
@@ -270,10 +269,10 @@ mod tests {
     fn filter_ranked_respects_top_n() {
         let f = UniverseFilter::default().normalize();
         let rows = vec![
-            ("BTC".into(), 0.0001, 60_000.0, 200.0),   // oi_usd = 12M
-            ("ETH".into(), 0.0002, 3_000.0, 3000.0),   // oi_usd = 9M
-            ("SOL".into(), 0.0003, 150.0, 50000.0),   // oi_usd = 7.5M
-            ("XRP".into(), 0.0004, 1.0, 10000000.0),  // oi_usd = 10M
+            ("BTC".into(), 0.0001, 60_000.0, 200.0), // oi_usd = 12M
+            ("ETH".into(), 0.0002, 3_000.0, 3000.0), // oi_usd = 9M
+            ("SOL".into(), 0.0003, 150.0, 50000.0),  // oi_usd = 7.5M
+            ("XRP".into(), 0.0004, 1.0, 10000000.0), // oi_usd = 10M
         ];
         let out = f.filter_ranked(&rows);
         assert_eq!(out.len(), 4); // top_n default = 4

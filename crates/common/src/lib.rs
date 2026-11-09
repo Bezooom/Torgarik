@@ -20,9 +20,7 @@ pub use config::*;
 pub use errors::*;
 pub use fx::*;
 pub use ids::{BrokerId, OpaqueAssetId, TradeId, WalletId};
-pub use instruments::{
-    Config, ConfigStore, Instrument, MarketType, OrderType, Side, TradingMode,
-};
+pub use instruments::{Config, ConfigStore, Instrument, MarketType, OrderType, Side, TradingMode};
 pub use journal::*;
 pub use money::*;
 pub use tax::*;

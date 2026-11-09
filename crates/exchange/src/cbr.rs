@@ -99,9 +99,7 @@ impl CbrClient {
 
         // Value is per `Nominal` units, not per 1 unit: divide before using.
         let per_unit = |code: &str| -> Result<f64, String> {
-            let node = valute
-                .get(code)
-                .ok_or_else(|| format!("cbr: no {code}"))?;
+            let node = valute.get(code).ok_or_else(|| format!("cbr: no {code}"))?;
             let value = node
                 .get("Value")
                 .and_then(|v| v.as_f64())
@@ -180,7 +178,8 @@ mod tests {
 
     #[test]
     fn missing_currency_is_an_error_not_a_zero_rate() {
-        let body = r#"{"Date":"2026-10-31T11:30:00+03:00","Valute":{"USD":{"Nominal":1,"Value":80.0}}}"#;
+        let body =
+            r#"{"Date":"2026-10-31T11:30:00+03:00","Valute":{"USD":{"Nominal":1,"Value":80.0}}}"#;
         let err = CbrClient::parse(body).expect_err("must fail");
         assert!(err.contains("EUR"), "{err}");
     }

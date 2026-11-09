@@ -153,7 +153,10 @@ fn default_version() -> String {
 #[derive(Debug)]
 pub enum JournalEntry {
     /// Successfully parsed event (possibly with a version warning).
-    Ok { event: JournalEvent, had_version: bool },
+    Ok {
+        event: JournalEvent,
+        had_version: bool,
+    },
     /// Line was valid JSON but the `kind` discriminant is unknown — skipped.
     UnknownKind { raw: String },
     /// Version major incompatible with this binary — skipped (do not plot).
@@ -294,10 +297,7 @@ impl Journal {
                             raw: trimmed.to_string(),
                         });
                     } else {
-                        warn!(
-                            "journal line {}: malformed JSON, skipping: {e}",
-                            lineno + 1
-                        );
+                        warn!("journal line {}: malformed JSON, skipping: {e}", lineno + 1);
                         entries.push(JournalEntry::Malformed {
                             raw: trimmed.to_string(),
                         });
@@ -345,20 +345,25 @@ mod tests {
         let entries = j.read();
         assert!(matches!(
             entries[0],
-            JournalEntry::Ok { had_version: true, .. }
+            JournalEntry::Ok {
+                had_version: true,
+                ..
+            }
         ));
         assert!(matches!(entries[1], JournalEntry::UnknownKind { .. }));
     }
 
     #[test]
     fn accepts_versionless_with_warning() {
-        let (j, _dir) = temp_journal(&[
-            r#"{"kind":"note","ts":"2026-01-01T00:00:00Z","text":"hello"}"#,
-        ]);
+        let (j, _dir) =
+            temp_journal(&[r#"{"kind":"note","ts":"2026-01-01T00:00:00Z","text":"hello"}"#]);
         let entries = j.read();
         assert!(matches!(
             entries[0],
-            JournalEntry::Ok { had_version: false, .. }
+            JournalEntry::Ok {
+                had_version: false,
+                ..
+            }
         ));
     }
 
@@ -383,7 +388,10 @@ mod tests {
         let entries = j.read();
         assert!(matches!(
             entries[0],
-            JournalEntry::Ok { had_version: true, .. }
+            JournalEntry::Ok {
+                had_version: true,
+                ..
+            }
         ));
     }
 
@@ -429,7 +437,13 @@ mod tests {
 
         let events = j.read_events();
         match &events[0] {
-            JournalEvent::Bracket { coin, action, level, mid, .. } => {
+            JournalEvent::Bracket {
+                coin,
+                action,
+                level,
+                mid,
+                ..
+            } => {
                 assert_eq!(coin, "ETH");
                 assert_eq!(action, "trigger_sl");
                 assert!((level - 98.0).abs() < 1e-9);

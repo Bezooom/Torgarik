@@ -77,10 +77,8 @@ pub fn build_exchange_pair(
              it is not on the order path"
                 .into(),
         )),
-        VenueKind::Other => {
-            Err(TradingError::Config(format!(
-                "venue '{venue}' not enabled in v1 money path (use primary_venue = hyperliquid)"
-            )))
-        }
+        VenueKind::Other => Err(TradingError::Config(format!(
+            "venue '{venue}' not enabled in v1 money path (use primary_venue = hyperliquid)"
+        ))),
     }
 }

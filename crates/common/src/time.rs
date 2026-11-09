@@ -14,7 +14,9 @@ pub fn format_iso(dt: &DateTime<Utc>) -> String {
 
 /// Convert an ISO 8601 string back to a DateTime<Utc>.
 pub fn parse_iso(s: &str) -> Option<DateTime<Utc>> {
-    DateTime::parse_from_rfc3339(s).ok().map(|dt| dt.with_timezone(&Utc))
+    DateTime::parse_from_rfc3339(s)
+        .ok()
+        .map(|dt| dt.with_timezone(&Utc))
 }
 
 #[cfg(test)]

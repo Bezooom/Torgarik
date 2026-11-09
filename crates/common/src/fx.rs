@@ -34,7 +34,11 @@ impl FxRates {
         eur_rub: f64,
         cny_rub: f64,
     ) -> Result<Self, String> {
-        for (name, v) in [("usd_rub", usd_rub), ("eur_rub", eur_rub), ("cny_rub", cny_rub)] {
+        for (name, v) in [
+            ("usd_rub", usd_rub),
+            ("eur_rub", eur_rub),
+            ("cny_rub", cny_rub),
+        ] {
             if !v.is_finite() || v <= 0.0 {
                 return Err(format!("{name}={v} must be finite and > 0"));
             }

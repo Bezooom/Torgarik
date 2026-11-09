@@ -9,11 +9,12 @@ use crate::TradingError;
 /// Call this once at application startup *before* spawning any async tasks.
 /// The `addr` should be a full bind address, e.g. `"0.0.0.0:9090"`.
 pub fn init(addr: &str) -> Result<(), TradingError> {
-    let socket_addr: SocketAddr = addr.parse()
+    let socket_addr: SocketAddr = addr
+        .parse()
         .map_err(|e| TradingError::Config(format!("invalid metrics addr: {}", e)))?;
 
-    let builder = metrics_exporter_prometheus::PrometheusBuilder::new()
-        .with_http_listener(socket_addr);
+    let builder =
+        metrics_exporter_prometheus::PrometheusBuilder::new().with_http_listener(socket_addr);
 
     let _handle = builder
         .install()

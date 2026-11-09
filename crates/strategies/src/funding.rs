@@ -239,7 +239,7 @@ impl FundingScannerStrategy {
                 (
                     c.clone(),
                     *f,
-                    1.0, // dummy mid — coin gate only if allowlist/blacklist
+                    1.0,            // dummy mid — coin gate only if allowlist/blacklist
                     f64::MAX / 1e9, // pass OI if mid dummy
                 )
             })

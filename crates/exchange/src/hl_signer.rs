@@ -14,7 +14,9 @@ use crate::{TradingError, TradingResult};
 /// Wire-format float: up to 8 decimals, no scientific notation, no trailing junk.
 pub fn float_to_wire(x: f64) -> TradingResult<String> {
     if !x.is_finite() {
-        return Err(TradingError::InvalidOrder(format!("non-finite price/size: {x}")));
+        return Err(TradingError::InvalidOrder(format!(
+            "non-finite price/size: {x}"
+        )));
     }
     let rounded = format!("{x:.8}");
     let parsed: f64 = rounded.parse().unwrap_or(x);
@@ -183,11 +185,7 @@ pub async fn sign_l1_action(
         .await
         .map_err(|e| TradingError::Signing(format!("sign_typed_data: {e}")))?;
 
-    debug!(
-        "HL L1 signed by {:?} v={}",
-        wallet.address(),
-        sig.v
-    );
+    debug!("HL L1 signed by {:?} v={}", wallet.address(), sig.v);
 
     Ok(HlSignature {
         r: format!("{:#x}", sig.r),

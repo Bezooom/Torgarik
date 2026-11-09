@@ -32,8 +32,7 @@ struct HistoryBar {
 
 /// Load mids + funding from `COIN_1h.json`, keeping only bars with a usable mid.
 pub fn load_series(path: &Path) -> Result<(String, Vec<f64>, Vec<f64>)> {
-    let raw = std::fs::read_to_string(path)
-        .with_context(|| format!("read {}", path.display()))?;
+    let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
     let file: HistoryFile =
         serde_json::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
     let coin = file
@@ -113,8 +112,7 @@ mod tests {
             .duration_since(UNIX_EPOCH)
             .map(|d| d.as_nanos())
             .unwrap_or(0);
-        std::env::temp_dir()
-            .join(format!("sig-{tag}-{nanos}-{}", std::process::id()))
+        std::env::temp_dir().join(format!("sig-{tag}-{nanos}-{}", std::process::id()))
     }
 
     #[test]

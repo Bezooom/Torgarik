@@ -49,11 +49,7 @@ pub struct Trader {
 }
 
 impl Trader {
-    pub fn new(
-        config: ConfigStore,
-        exchange: ExchangeHandle,
-        strategy: Box<dyn Strategy>,
-    ) -> Self {
+    pub fn new(config: ConfigStore, exchange: ExchangeHandle, strategy: Box<dyn Strategy>) -> Self {
         let name = strategy.name().to_string();
         let use_allowlist_loop = name == "majors_alpha" || name == "trend_mid";
         Self {
@@ -112,7 +108,11 @@ impl Trader {
         if mode == CopilotMode::Advisory {
             tracing::info!(
                 "ADVISORY {:?} conv={:.3} decayed={:.3} stale={} rec={}",
-                symbol, raw_edge, decayed, stale, rec
+                symbol,
+                raw_edge,
+                decayed,
+                stale,
+                rec
             );
         }
 
@@ -211,14 +211,19 @@ impl Trader {
 
             let day_start = (portfolio.equity - portfolio.daily_pnl).max(1e-9);
             if portfolio.daily_pnl < 0.0
-                && (-portfolio.daily_pnl) / day_start
-                    >= self.config.settings.risk.max_daily_loss
+                && (-portfolio.daily_pnl) / day_start >= self.config.settings.risk.max_daily_loss
             {
                 warn!(
                     "KILL-SWITCH max_daily_loss daily_pnl={:.2} equity={:.2}",
                     portfolio.daily_pnl, portfolio.equity
                 );
-                write_state(&portfolio, &symbols, cycle, "kill_switch", self.strategy.name());
+                write_state(
+                    &portfolio,
+                    &symbols,
+                    cycle,
+                    "kill_switch",
+                    self.strategy.name(),
+                );
                 continue;
             }
 
@@ -252,8 +257,7 @@ impl Trader {
                     continue;
                 };
 
-                if let Err(e) =
-                    check_order(&req, &portfolio, &self.config.settings.risk, quote.mid)
+                if let Err(e) = check_order(&req, &portfolio, &self.config.settings.risk, quote.mid)
                 {
                     warn!("risk reject {sym}: {e}");
                     continue;
@@ -262,12 +266,7 @@ impl Trader {
                 match self.exchange.place_order(&req).await {
                     Ok(ack) => info!(
                         "ORDER {:?} {} {} status={:?} @ {:?} — {}",
-                        req.side,
-                        req.size,
-                        sym,
-                        ack.status,
-                        ack.avg_price,
-                        req.reasoning
+                        req.side, req.size, sym, ack.status, ack.avg_price, req.reasoning
                     ),
                     Err(e) => warn!("place_order {sym}: {e}"),
                 }
@@ -332,7 +331,10 @@ fn write_state(
         })).collect::<Vec<_>>(),
         "watch": symbols,
     });
-    let _ = fs::write(path, serde_json::to_string_pretty(&body).unwrap_or_default());
+    let _ = fs::write(
+        path,
+        serde_json::to_string_pretty(&body).unwrap_or_default(),
+    );
 }
 
 pub fn default_strategy(cfg: &ConfigStore) -> Box<dyn Strategy> {
@@ -341,11 +343,9 @@ pub fn default_strategy(cfg: &ConfigStore) -> Box<dyn Strategy> {
     let max_pos = cfg.settings.risk.max_position_per_instrument;
     let stop = cfg.settings.risk.stop_loss;
     match s.name.as_str() {
-        "funding_carry" | "funding_scanner" => {
-            Box::new(trading_strategies::FundingCarryStrategy::from_settings(
-                s, max_pos, stop,
-            ))
-        }
+        "funding_carry" | "funding_scanner" => Box::new(
+            trading_strategies::FundingCarryStrategy::from_settings(s, max_pos, stop),
+        ),
         "majors_alpha" | "trend_mid" | _ => Box::new(
             trading_strategies::MajorsAlphaStrategy::from_settings(s, allow, max_pos, stop),
         ),

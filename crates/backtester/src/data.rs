@@ -128,10 +128,7 @@ pub fn load_history_dir(dir: &Path) -> anyhow::Result<Vec<CoinSeries>> {
 }
 
 /// [`load_history_dir`] with a point-in-time cut applied to every series.
-pub fn load_history_dir_as_of(
-    dir: &Path,
-    as_of: Option<i64>,
-) -> anyhow::Result<Vec<CoinSeries>> {
+pub fn load_history_dir_as_of(dir: &Path, as_of: Option<i64>) -> anyhow::Result<Vec<CoinSeries>> {
     if !dir.is_dir() {
         anyhow::bail!("data dir not found: {}", dir.display());
     }

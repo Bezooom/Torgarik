@@ -52,7 +52,11 @@ pub struct HyperliquidClient {
 }
 
 impl HyperliquidClient {
-    pub fn new(base_url: &str, wallet_address: &str, proxy_url: Option<&str>) -> TradingResult<Self> {
+    pub fn new(
+        base_url: &str,
+        wallet_address: &str,
+        proxy_url: Option<&str>,
+    ) -> TradingResult<Self> {
         Self::with_signer(base_url, wallet_address, None, proxy_url)
     }
 
@@ -224,12 +228,15 @@ impl HyperliquidClient {
             let funding = funding_map.get(&coin).copied();
             let mark = mark_map.get(&coin).copied();
             let open_interest = oi_map.get(&coin).copied();
-            market_data_map.insert(coin, MarketData {
-                mid,
-                funding,
-                mark,
-                open_interest,
-            });
+            market_data_map.insert(
+                coin,
+                MarketData {
+                    mid,
+                    funding,
+                    mark,
+                    open_interest,
+                },
+            );
         }
 
         *self.market_data_cache.write().await = market_data_map;
@@ -243,7 +250,11 @@ impl HyperliquidClient {
     }
 
     /// Rank coins by |funding| (desc). Returns (coin, funding, mid, oi).
-    pub async fn rank_by_funding(&self, min_abs_funding: f64, min_oi: f64) -> TradingResult<Vec<FundingOpp>> {
+    pub async fn rank_by_funding(
+        &self,
+        min_abs_funding: f64,
+        min_oi: f64,
+    ) -> TradingResult<Vec<FundingOpp>> {
         if self.market_data_cache.read().await.is_empty() {
             self.refresh_market_data().await?;
         }
@@ -268,7 +279,12 @@ impl HyperliquidClient {
                 })
             })
             .collect();
-        rows.sort_by(|a, b| b.funding.abs().partial_cmp(&a.funding.abs()).unwrap_or(std::cmp::Ordering::Equal));
+        rows.sort_by(|a, b| {
+            b.funding
+                .abs()
+                .partial_cmp(&a.funding.abs())
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
         Ok(rows)
     }
 
@@ -343,8 +359,8 @@ impl HyperliquidClient {
             )));
         }
 
-        let v: JsonValue = serde_json::from_str(&text)
-            .map_err(|e| TradingError::Serialization(e.to_string()))?;
+        let v: JsonValue =
+            serde_json::from_str(&text).map_err(|e| TradingError::Serialization(e.to_string()))?;
 
         if v.get("status").and_then(|s| s.as_str()) != Some("ok") {
             return Err(TradingError::Api(format!("HL exchange error: {text}")));
@@ -363,8 +379,11 @@ pub struct FundingOpp {
 }
 
 fn parse_f64_field(obj: &JsonValue, key: &str) -> Option<f64> {
-    obj.get(key)
-        .and_then(|x| x.as_str().and_then(|s| s.parse().ok()).or_else(|| x.as_f64()))
+    obj.get(key).and_then(|x| {
+        x.as_str()
+            .and_then(|s| s.parse().ok())
+            .or_else(|| x.as_f64())
+    })
 }
 
 fn rmpv_to_json(v: &rmpv::Value) -> TradingResult<JsonValue> {
@@ -736,10 +755,7 @@ mod tests {
                 assert!(q.mid > 0.0);
                 let opps = client.rank_by_funding(1e-6, 0.0).await.unwrap();
                 assert!(!opps.is_empty());
-                println!(
-                    "top funding: {} {:+.6e}",
-                    opps[0].coin, opps[0].funding
-                );
+                println!("top funding: {} {:+.6e}", opps[0].coin, opps[0].funding);
             }
             Err(e) => eprintln!("skip network test: {e}"),
         }

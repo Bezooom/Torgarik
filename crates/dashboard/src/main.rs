@@ -144,7 +144,10 @@ fn discover_root() -> PathBuf {
         }
         // running from crates/dashboard
         if cur.join("../../runtime").is_dir() && cur.join("../../Cargo.toml").is_file() {
-            return cur.join("../..").canonicalize().unwrap_or(cur.join("../.."));
+            return cur
+                .join("../..")
+                .canonicalize()
+                .unwrap_or(cur.join("../.."));
         }
         if !cur.pop() {
             break;
@@ -154,7 +157,9 @@ fn discover_root() -> PathBuf {
 }
 
 fn root() -> &'static Path {
-    ROOT.get().map(|p| p.as_path()).unwrap_or_else(|| Path::new("."))
+    ROOT.get()
+        .map(|p| p.as_path())
+        .unwrap_or_else(|| Path::new("."))
 }
 
 fn build_status() -> Result<Value, String> {
@@ -256,9 +261,15 @@ fn build_block_status(
             "text": "Нет OOS-отчёта (data/reports). Live auto-alpha заблокирован."
         }));
     } else if oos_blocking {
-        let sharpe = backtest.get("avg_test_sharpe").cloned().unwrap_or(json!(null));
+        let sharpe = backtest
+            .get("avg_test_sharpe")
+            .cloned()
+            .unwrap_or(json!(null));
         let pnl = backtest.get("avg_test_pnl").cloned().unwrap_or(json!(null));
-        let age = backtest.get("report_age_human").and_then(|v| v.as_str()).unwrap_or("?");
+        let age = backtest
+            .get("report_age_human")
+            .and_then(|v| v.as_str())
+            .unwrap_or("?");
         reasons.push(json!({
             "code": "oos_red",
             "severity": "high",
@@ -289,7 +300,10 @@ fn build_block_status(
         live_execute_blocked = true;
     }
 
-    let shell_status = shell.get("status").and_then(|v| v.as_str()).unwrap_or("unknown");
+    let shell_status = shell
+        .get("status")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown");
     if shell_status == "stopped" || shell_status == "stale" {
         reasons.push(json!({
             "code": "shell_not_alive",
@@ -643,12 +657,7 @@ fn load_s1() -> Value {
         let h = r["hours"].as_f64().unwrap_or(0.0);
         let shell = r["shell"]
             .as_str()
-            .map(|s| {
-                matches!(
-                    s.to_ascii_lowercase().as_str(),
-                    "yes" | "y" | "1" | "true"
-                )
-            })
+            .map(|s| matches!(s.to_ascii_lowercase().as_str(), "yes" | "y" | "1" | "true"))
             .unwrap_or(false);
         let track = r["track"].as_str().unwrap_or("?").to_string();
 
@@ -731,11 +740,7 @@ fn load_journal_tail(n: usize) -> Vec<Value> {
         .flatten()
         .filter_map(|e| e.ok())
         .map(|e| e.path())
-        .filter(|p| {
-            p.extension()
-                .map(|e| e == "jsonl")
-                .unwrap_or(false)
-        })
+        .filter(|p| p.extension().map(|e| e == "jsonl").unwrap_or(false))
         .collect();
     files.sort();
     let mut lines: Vec<String> = Vec::new();
@@ -760,10 +765,7 @@ fn load_signals_tail(n: usize) -> Vec<Value> {
     let Ok(text) = fs::read_to_string(path) else {
         return Vec::new();
     };
-    let lines: Vec<&str> = text
-        .lines()
-        .filter(|l| !l.trim().is_empty())
-        .collect();
+    let lines: Vec<&str> = text.lines().filter(|l| !l.trim().is_empty()).collect();
     let start = lines.len().saturating_sub(n);
     lines[start..]
         .iter()

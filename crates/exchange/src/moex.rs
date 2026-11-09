@@ -219,10 +219,7 @@ impl MoexClient {
     ///
     /// Mid priority: `LAST` (last trade) → bid/ask midpoint → `MARKETPRICE`.
     /// A row with none of those is "no quote right now", not a zero price.
-    pub fn quote_from_marketdata(
-        secid: &str,
-        map: &HashMap<&str, &Value>,
-    ) -> TradingResult<Quote> {
+    pub fn quote_from_marketdata(secid: &str, map: &HashMap<&str, &Value>) -> TradingResult<Quote> {
         let bid = as_f64(map.get("BID")).unwrap_or(0.0);
         let ask = as_f64(map.get("OFFER")).unwrap_or(0.0);
         let last = as_f64(map.get("LAST"));
@@ -343,8 +340,7 @@ impl MoexClient {
             let Some(close) = as_str(map.get("registryclosedate")) else {
                 continue;
             };
-            let Some(value) = as_f64(map.get("value")).filter(|v| v.is_finite() && *v > 0.0)
-            else {
+            let Some(value) = as_f64(map.get("value")).filter(|v| v.is_finite() && *v > 0.0) else {
                 continue;
             };
             out.push(MoexDividend {
@@ -581,7 +577,9 @@ mod tests {
     #[test]
     fn dividends_block_absent_is_an_error_not_an_empty_list() {
         // Real open payload for SBER: description + boards, no dividends block.
-        let root = parse(r#"{"description":{"columns":["name"],"data":[["SECID"]]},"boards":{"columns":["secid"],"data":[["SBER"]]}}"#);
+        let root = parse(
+            r#"{"description":{"columns":["name"],"data":[["SECID"]]},"boards":{"columns":["secid"],"data":[["SBER"]]}}"#,
+        );
         let err = MoexClient::dividends_from_block(&root).expect_err("must not be empty ok");
         assert!(
             matches!(err, TradingError::ExchangeApi(_)),

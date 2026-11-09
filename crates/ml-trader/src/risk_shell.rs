@@ -214,7 +214,9 @@ impl RiskShell {
     }
 
     fn refresh_oos(&mut self) {
-        self.oos_blocking = OosStats::load().map(|s| s.is_blocking_with_settings(&self.config.settings.oos)).unwrap_or(false);
+        self.oos_blocking = OosStats::load()
+            .map(|s| s.is_blocking_with_settings(&self.config.settings.oos))
+            .unwrap_or(false);
     }
 
     fn log_oos_status(&self, note: &str) {
@@ -389,10 +391,9 @@ impl RiskShell {
             let mut lines = Vec::new();
             for sym in &symbols {
                 match self.hl.get_quote(sym).await {
-                    Ok(q) => lines.push(format!(
-                        "{sym} mid={:.4} fund={:?}",
-                        q.mid, q.funding_rate
-                    )),
+                    Ok(q) => {
+                        lines.push(format!("{sym} mid={:.4} fund={:?}", q.mid, q.funding_rate))
+                    }
                     Err(e) => {
                         warn!("quote {sym}: {e}");
                         lines.push(format!("{sym}=ERR"));
@@ -444,7 +445,10 @@ impl RiskShell {
         }
         let mut reader = BufReader::new(file);
         if reader.seek(SeekFrom::Start(self.signal_offset)).is_err() {
-            warn!("signals seek failed at {}; resetting offset", self.signal_offset);
+            warn!(
+                "signals seek failed at {}; resetting offset",
+                self.signal_offset
+            );
             self.signal_offset = 0;
             return;
         }
@@ -471,17 +475,22 @@ impl RiskShell {
 
             // Clean up processed signals older than 5 minutes.
             let now = Utc::now();
-            self.processed_signals.retain(|s| now.signed_duration_since(s.ts).num_seconds() < 300);
+            self.processed_signals
+                .retain(|s| now.signed_duration_since(s.ts).num_seconds() < 300);
 
             // Check if this signal is a duplicate (same coin, side, size within last 5 minutes).
             let coin_upper = sig.coin.trim().to_ascii_uppercase();
             let side_lower = sig.side.to_ascii_lowercase();
-            let is_dup = self.processed_signals.iter().any(|ps| {
-                ps.coin == coin_upper && ps.side == side_lower && ps.size == sig.size
-            });
+            let is_dup = self
+                .processed_signals
+                .iter()
+                .any(|ps| ps.coin == coin_upper && ps.side == side_lower && ps.size == sig.size);
 
             if is_dup {
-                debug!("Skipping duplicate external signal for {} {}", coin_upper, side_lower);
+                debug!(
+                    "Skipping duplicate external signal for {} {}",
+                    coin_upper, side_lower
+                );
                 continue;
             }
 
@@ -504,10 +513,7 @@ impl RiskShell {
         force_block: bool,
         dry: bool,
     ) {
-        let source = sig
-            .source
-            .clone()
-            .unwrap_or_else(|| "external".into());
+        let source = sig.source.clone().unwrap_or_else(|| "external".into());
         let side_l = sig.side.to_ascii_lowercase();
         let coin = sig.coin.trim().to_ascii_uppercase();
 
@@ -818,11 +824,7 @@ impl RiskShell {
     /// `place_order`). A bracket is removed **before** the close attempt so a
     /// failing venue call cannot double-fire next cycle (v1 policy: an
     /// un-bracketed position is surfaced via journal/warn, not retried).
-    async fn check_brackets(
-        &mut self,
-        portfolio: &trading_common::PortfolioSnapshot,
-        dry: bool,
-    ) {
+    async fn check_brackets(&mut self, portfolio: &trading_common::PortfolioSnapshot, dry: bool) {
         // In dry mode the venue book is empty by definition; monitor the
         // shell's own dry fills instead so SL/TP rehearsal is real.
         let snapshot: Vec<Bracket> = self.brackets.list().to_vec();
@@ -907,9 +909,7 @@ impl RiskShell {
                 reasoning: format!("bracket:{}", action.as_str()),
             };
 
-            if let Err(e) =
-                check_order(&req, portfolio, &self.config.settings.risk, quote.mid)
-            {
+            if let Err(e) = check_order(&req, portfolio, &self.config.settings.risk, quote.mid) {
                 self.journal.write(&JournalEvent::RiskBlock {
                     ts: Utc::now(),
                     reason: "risk_gate".into(),
@@ -960,9 +960,7 @@ impl RiskShell {
                     warn!("bracket close place_order {coin}: {e} – position left UNPROTECTED");
                     self.journal.write(&JournalEvent::Note {
                         ts: Utc::now(),
-                        text: format!(
-                            "bracket close failed {coin}: {e} – position unprotected"
-                        ),
+                        text: format!("bracket close failed {coin}: {e} – position unprotected"),
                     });
                 }
             }
@@ -1017,7 +1015,10 @@ mod tests {
         let mut live = Settings::default();
         live.mode = RunMode::Live;
         let err = live.validate_with_oos(Some(&red)).unwrap_err().to_string();
-        assert!(err.contains("kill-switch") || err.contains("locked"), "{err}");
+        assert!(
+            err.contains("kill-switch") || err.contains("locked"),
+            "{err}"
+        );
 
         let mut paper = Settings::default();
         paper.mode = RunMode::Paper;
@@ -1044,7 +1045,10 @@ mod tests {
         let mut live = Settings::default();
         live.mode = RunMode::Live;
         // Still needs CONFIRM_LIVE + keys – but not kill-switch.
-        let err = live.validate_with_oos(Some(&green)).unwrap_err().to_string();
+        let err = live
+            .validate_with_oos(Some(&green))
+            .unwrap_err()
+            .to_string();
         assert!(
             !err.contains("kill-switch"),
             "should not be kill-switch: {err}"
@@ -1064,7 +1068,13 @@ mod tests {
 
         let mut live = Settings::default();
         live.mode = RunMode::Live;
-        let err = live.validate_with_oos(Some(&stats)).unwrap_err().to_string();
-        assert!(err.contains("kill-switch") || err.contains("locked"), "{err}");
+        let err = live
+            .validate_with_oos(Some(&stats))
+            .unwrap_err()
+            .to_string();
+        assert!(
+            err.contains("kill-switch") || err.contains("locked"),
+            "{err}"
+        );
     }
 }
