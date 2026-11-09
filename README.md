@@ -1,4 +1,27 @@
-# Торгарик (Torgarik)
+<a id="readme-top"></a>
+<!-- best-readme-template -->
+<div align="center">
+
+<h1 align="center">Торгарик (Torgarik)</h1>
+
+<p align="center">
+  Исследовательский торговый стек на Rust: Hyperliquid + MOEX ISS (только чтение), walk-forward бэктест и kill-switch, который не пускает слабую стратегию в живую торговлю.
+  <br />
+  <br />
+  <a href="https://github.com/Bezooom/Torgarik/tree/HEAD/docs"><strong>Документация »</strong></a> · <a href="https://github.com/Bezooom/Torgarik/issues/new?labels=bug">Сообщить об ошибке</a> · <a href="https://github.com/Bezooom/Torgarik/issues/new?labels=enhancement">Предложить улучшение</a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/Bezooom/Torgarik/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/Bezooom/Torgarik/ci.yml?style=for-the-badge&label=CI&logo=githubactions&logoColor=white" alt="CI" /></a>
+  <a href="https://github.com/Bezooom/Torgarik/blob/HEAD/LICENSE-MIT"><img src="https://img.shields.io/badge/License-MIT%20OR%20Apache--2.0-blue?style=for-the-badge" alt="License" /></a>
+  <a href="https://github.com/Bezooom/Torgarik/stargazers"><img src="https://img.shields.io/github/stars/Bezooom/Torgarik?style=for-the-badge" alt="Stars" /></a>
+  <a href="https://github.com/Bezooom/Torgarik/commits"><img src="https://img.shields.io/github/last-commit/Bezooom/Torgarik?style=for-the-badge" alt="Last commit" /></a>
+  <a href="https://github.com/Bezooom/Torgarik/issues"><img src="https://img.shields.io/github/issues/Bezooom/Torgarik?style=for-the-badge" alt="Issues" /></a>
+</p>
+
+</div>
+
+## 📖 О проекте
 
 [![CI](https://github.com/Bezooom/Torgarik/actions/workflows/ci.yml/badge.svg)](https://github.com/Bezooom/Torgarik/actions/workflows/ci.yml)
 ![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue)
@@ -19,21 +42,24 @@
 
 ---
 
-## Содержание
+## 📑 Содержание
 
+- [📖 О проекте](#-о-проекте)
 - [Что это такое простыми словами](#что-это-такое-простыми-словами)
 - [Честные результаты](#честные-результаты)
 - [Что умеет](#что-умеет)
 - [Как устроено](#как-устроено)
+- [🧱 Технологии (Built With)](#-технологии-built-with)
 - [Быстрый старт](#быстрый-старт)
 - [Структура проекта](#структура-проекта)
 - [Безопасность и юридические риски](#безопасность-и-юридические-риски)
 - [Планы](#планы)
 - [Документация](#документация)
 - [English summary](#english-summary)
+- [🤝 Участие в разработке](#-участие-в-разработке)
 - [Лицензия](#лицензия)
-
----
+- [📬 Контакты](#-контакты)
+- [🙏 Благодарности](#-благодарности)
 
 ## Что это такое простыми словами
 
@@ -177,6 +203,16 @@ flowchart TD
 ставить настоящие ордера. Подробнее: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ---
+
+## 🧱 Технологии (Built With)
+
+<p>
+<img src="https://img.shields.io/badge/Rust-2021-000000?style=for-the-badge&logo=rust&logoColor=white" alt="Rust" />
+<img src="https://img.shields.io/badge/Tokio-async-463F8A?style=for-the-badge" alt="Tokio" />
+<img src="https://img.shields.io/badge/Hyperliquid-API-0B3D2E?style=for-the-badge" alt="Hyperliquid" />
+<img src="https://img.shields.io/badge/MOEX-ISS-D52B1E?style=for-the-badge" alt="MOEX" />
+<img src="https://img.shields.io/badge/GitHub%20Actions-CI-2088FF?style=for-the-badge&logo=githubactions&logoColor=white" alt="GitHub Actions" />
+</p>
 
 ## Быстрый старт
 
@@ -334,6 +370,34 @@ Quick start: `cargo build --workspace && cargo test --workspace` (Rust ≥ 1.88,
 
 **Not financial advice.** Hyperliquid lists Russia among its restricted territories.
 
+## 🤝 Участие в разработке
+
+Вклад в проект приветствуется. Если есть идея, как сделать лучше, откройте issue или pull request:
+
+1. Сделайте форк репозитория
+2. Создайте ветку (`git checkout -b feature/my-idea`)
+3. Сделайте коммит (`git commit -m 'feat: my idea'`)
+4. Отправьте ветку (`git push origin feature/my-idea`)
+5. Откройте pull request
+
+Подробные правила: [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Лицензия
 
 На выбор: [MIT](LICENSE-MIT) или [Apache-2.0](LICENSE-APACHE) — стандарт для Rust-проектов.
+
+## 📬 Контакты
+
+**Павел Наумов** (Bezooom) — [naumovai.ru](https://naumovai.ru) · [X @Bezooooom](https://x.com/Bezooooom) · naumov122@gmail.com
+
+Проект: [https://github.com/Bezooom/Torgarik](https://github.com/Bezooom/Torgarik)
+
+## 🙏 Благодарности
+
+- [Hyperliquid](https://hyperliquid.xyz) — публичное API биржи
+- [MOEX ISS](https://iss.moex.com) — открытые данные Московской биржи
+- [AQR: Time Series Momentum](https://www.aqr.com/Insights/Research/Journal-Article/Time-Series-Momentum) — исследование трендовых стратегий
+- [Best-README-Template](https://github.com/othneildrew/Best-README-Template)
+- [Shields.io](https://shields.io)
+
+<p align="right">(<a href="#readme-top">наверх</a>)</p>
