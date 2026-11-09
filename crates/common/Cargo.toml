@@ -1,0 +1,27 @@
+[package]
+name = "trading-common"
+version = { workspace = true }
+edition = { workspace = true }
+rust-version = { workspace = true }
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+config = { workspace = true }
+clap = { workspace = true }
+metrics = { workspace = true }
+metrics-exporter-prometheus = { workspace = true }
+hex = { workspace = true }
+toml = { workspace = true }

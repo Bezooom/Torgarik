@@ -1,0 +1,68 @@
+# ---- Rust ----
+/target/
+**/target/
+**/*.rs.bk
+
+# ---- Secrets: never commit ----
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.keystore
+config/wallets.json
+config/*.local.toml
+config/secrets*.toml
+
+# ---- Runtime state, logs, pids ----
+/runtime/*
+!/runtime/journal/
+/runtime/journal/*
+!/runtime/journal/.gitkeep
+!/runtime/s1/
+/runtime/s1/*
+!/runtime/s1/.gitkeep
+logs/
+*.log
+*.pid
+dist/
+
+# ---- Data caches (collect them yourself with scripts/) ----
+/data/*
+!/data/history/
+/data/history/*
+!/data/history/ETH_1h.csv
+!/data/history/SOL_1h.csv
+!/data/reports/
+/data/reports/*
+!/data/reports/wf_latest.json
+!/data/reports/wf_funding_majors_holdout.json
+!/data/reports/wf_repro.json
+
+# ---- Models / ML binaries ----
+/models/*
+!/models/.gitkeep
+*.onnx
+*.pkl
+*.pt
+*.safetensors
+*.bin
+
+*.sqlite
+*.sqlite3
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# ---- Editors / agents / OS ----
+.idea/
+.vscode/
+*.swp
+.DS_Store
+.kilo/
+.codegraph/
+.config/
+node_modules/

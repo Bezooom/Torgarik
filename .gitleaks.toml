@@ -1,0 +1,3 @@
+# gitleaks config: default rules. Add [allowlist] entries here for known false positives.
+[extend]
+useDefault = true

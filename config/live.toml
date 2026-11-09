@@ -1,0 +1,66 @@
+# Live trading – requires CONFIRM_LIVE=1 and WALLET_PRIVATE_KEY
+mode = "live"
+log_level = "info"
+metrics_port = 9090
+
+[exchange]
+primary_venue = "hyperliquid"
+hyperliquid_base_url = "https://api.hyperliquid.xyz"
+hyperliquid_ws_url = "wss://api.hyperliquid.xyz/ws"
+symbol_whitelist = ["BTC", "ETH"]
+allow_synthetic = false
+wallet_address = ""
+rpc_url = "https://rpc.hyperliquid.xyz/evm"
+chain_id = 42161
+max_gas_price_gwei = 50
+max_slippage = 0.008
+
+[risk]
+max_portfolio_exposure = 0.25
+max_position_per_instrument = 0.05
+max_daily_loss = 0.02
+stop_loss = 0.08
+use_exchange_balance = true
+starting_bankroll = 500.0
+
+[strategy]
+name = "funding_scanner"
+funding_enter = 0.00005
+funding_exit = 0.000015
+kelly_fraction = 0.15
+min_edge = 0.0
+loop_interval_secs = 20
+universe_mode = "allowlist"
+blacklist = [
+  "ACE", "NOT", "MOVE", "kNEIRO", "NEIRO", "SUPER", "CASHCAT", "POPCAT",
+  "WIF", "MEW", "PNUT", "GOAT", "MOODENG", "FARTCOIN", "BRETT", "GIGA",
+  "BONK", "FLOKI", "BOME", "DOGS", "HMSTR", "MEME", "TURBO",
+]
+min_oi_notional_usd = 10000000.0
+min_mid = 0.1
+max_abs_funding = 0.0004
+max_positions = 2
+top_n = 3
+
+[ml]
+enabled = false
+model_path = "models/market_predictor.onnx"
+consensus_threshold = 0.70
+n_estimators = 300
+llm_endpoint = "https://openrouter.ai/api/v1"
+sglang_endpoint = "http://localhost:30000/v1"
+sglang_model = "default"
+use_local_sglang = false
+
+# OOS kill-switch floors (explicit = defaults). Live blocked when
+# avg_sharpe < floor OR avg_pnl < floor OR holdout red OR fold-ratio gate.
+[oos]
+sharpe_floor = 0.0
+avg_pnl_floor = 0.0
+min_profitable_fold_ratio = 0.0
+
+[risk.protections]
+stoploss_guard_max_stops = 2
+stoploss_guard_window_hours = 48.0
+cooldown_hours = 4.0
+max_drawdown_frac = 0.10

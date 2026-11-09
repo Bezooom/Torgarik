@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Торгарик — понятный статус</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --bg2: #121a2f;
+      --card: rgba(18, 26, 47, 0.92);
+      --border: rgba(255,255,255,0.09);
+      --cyan: #22d3ee;
+      --green: #34d399;
+      --amber: #fbbf24;
+      --rose: #fb7185;
+      --purple: #c084fc;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --soft: #cbd5e1;
+      --shadow: 0 12px 40px rgba(0,0,0,0.35);
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: 'Manrope', system-ui, sans-serif;
+      background:
+        radial-gradient(900px 400px at 10% -10%, rgba(34,211,238,0.12), transparent 55%),
+        radial-gradient(700px 360px at 90% 0%, rgba(251,113,133,0.10), transparent 50%),
+        var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 18px;
+      line-height: 1.45;
+    }
+    a { color: var(--cyan); }
+    code, .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    button { font-family: inherit; cursor: pointer; }
+
+    /* Top bar */
+    .topbar {
+      display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 14px 18px; margin-bottom: 14px; box-shadow: var(--shadow);
+    }
+    .brand h1 { margin: 0; font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em; }
+    .brand p { margin: 4px 0 0; color: var(--muted); font-size: 0.9rem; }
+    .top-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-end; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 700;
+      border: 1px solid var(--border); background: rgba(0,0,0,0.2);
+    }
+    .pill.ok { color: var(--green); border-color: rgba(52,211,153,0.35); background: rgba(52,211,153,0.12); }
+    .pill.bad { color: var(--rose); border-color: rgba(251,113,133,0.4); background: rgba(251,113,133,0.12); }
+    .pill.warn { color: var(--amber); border-color: rgba(251,191,36,0.4); background: rgba(251,191,36,0.12); }
+    .pill.info { color: var(--cyan); border-color: rgba(34,211,238,0.35); background: rgba(34,211,238,0.12); }
+    .btn {
+      border: 1px solid var(--border); background: rgba(255,255,255,0.04);
+      color: var(--text); border-radius: 10px; padding: 8px 12px; font-size: 13px; font-weight: 600;
+    }
+    .btn:hover { background: rgba(255,255,255,0.08); }
+    .btn.primary { background: rgba(34,211,238,0.15); border-color: rgba(34,211,238,0.35); color: #a5f3fc; }
+    .btn.ghost { background: transparent; }
+
+    /* Verdict hero */
+    .hero {
+      border-radius: 20px; padding: 22px 22px 18px; margin-bottom: 14px;
+      border: 1.5px solid rgba(251,113,133,0.45);
+      background: linear-gradient(145deg, rgba(251,113,133,0.16), rgba(15,23,42,0.92));
+      box-shadow: var(--shadow);
+    }
+    .hero.green {
+      border-color: rgba(52,211,153,0.45);
+      background: linear-gradient(145deg, rgba(52,211,153,0.14), rgba(15,23,42,0.92));
+    }
+    .hero-kicker { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--soft); opacity: 0.9; }
+    .hero-q { margin: 8px 0 4px; font-size: 1.05rem; color: var(--soft); font-weight: 600; }
+    .hero-a { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; }
+    .hero-plain { margin-top: 10px; color: var(--soft); font-size: 0.98rem; max-width: 70ch; }
+    .hero-flags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .reasons { margin-top: 14px; display: grid; gap: 8px; }
+    .reason {
+      display: flex; gap: 10px; align-items: flex-start;
+      background: rgba(0,0,0,0.32); border: 1px solid var(--border);
+      border-radius: 12px; padding: 10px 12px; font-size: 13.5px;
+    }
+    .sev {
+      flex: 0 0 auto; font-size: 11px; font-weight: 800; text-transform: uppercase;
+      padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border);
+    }
+    .sev-high { color: var(--rose); background: rgba(251,113,133,0.12); }
+    .sev-medium { color: var(--amber); background: rgba(251,191,36,0.12); }
+    .sev-info { color: var(--cyan); background: rgba(34,211,238,0.1); }
+
+    /* Layout */
+    .grid { display: grid; gap: 14px; }
+    .grid-2 { grid-template-columns: 1.15fr 0.85fr; }
+    .grid-4 { grid-template-columns: repeat(4, 1fr); }
+    @media (max-width: 1100px) {
+      .grid-2 { grid-template-columns: 1fr; }
+      .grid-4 { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .grid-4 { grid-template-columns: 1fr; }
+      .topbar { flex-direction: column; }
+    }
+
+    .card {
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 16px; box-shadow: var(--shadow);
+    }
+    .card-h {
+      display: flex; justify-content: space-between; align-items: center; gap: 10px;
+      margin-bottom: 12px;
+    }
+    .card-h h2 { margin: 0; font-size: 0.98rem; font-weight: 800; }
+    .card-h .meta { font-size: 12px; color: var(--muted); font-weight: 500; }
+
+    /* Metric tiles */
+    .metric .label { font-size: 12px; color: var(--muted); font-weight: 700; display: flex; align-items: center; gap: 6px; }
+    .metric .value { font-size: 1.55rem; font-weight: 800; margin-top: 6px; font-family: 'JetBrains Mono', monospace; }
+    .metric .sub { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
+    .metric .hint { margin-top: 8px; font-size: 12px; color: var(--soft); opacity: 0.9; }
+
+    /* Progress */
+    .bar {
+      height: 10px; border-radius: 999px; background: rgba(255,255,255,0.08);
+      overflow: hidden; margin-top: 10px;
+    }
+    .bar > i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #22d3ee, #34d399); width: 0%; transition: width .4s ease; }
+    .bar.bad > i { background: linear-gradient(90deg, #fb7185, #fbbf24); }
+
+    /* Actions */
+    .action {
+      border: 1px solid var(--border); border-radius: 12px; padding: 12px;
+      background: rgba(0,0,0,0.22); margin-bottom: 8px;
+    }
+    .action:last-child { margin-bottom: 0; }
+    .action .n {
+      display: inline-flex; width: 22px; height: 22px; align-items: center; justify-content: center;
+      border-radius: 999px; font-size: 12px; font-weight: 800; margin-right: 6px;
+      background: rgba(34,211,238,0.15); color: #a5f3fc;
+    }
+    .action h3 { margin: 0 0 4px; font-size: 0.95rem; display: flex; align-items: center; }
+    .action p { margin: 0; color: var(--muted); font-size: 13px; }
+    .action .cmd-row {
+      margin-top: 8px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+    }
+    .action code {
+      font-size: 11.5px; padding: 6px 8px; border-radius: 8px;
+      background: rgba(0,0,0,0.4); border: 1px solid var(--border); color: #e2e8f0;
+      max-width: 100%; overflow-x: auto; white-space: nowrap;
+    }
+    .copy-btn { font-size: 12px; padding: 6px 10px; }
+
+    /* Tips / glossary */
+    .tip {
+      border-left: 3px solid var(--cyan);
+      background: rgba(34,211,238,0.08);
+      border-radius: 0 12px 12px 0;
+      padding: 10px 12px; margin-top: 10px; font-size: 13px; color: var(--soft);
+    }
+    .tip.warn { border-left-color: var(--amber); background: rgba(251,191,36,0.08); }
+    .tip.danger { border-left-color: var(--rose); background: rgba(251,113,133,0.08); }
+    .glossary details {
+      border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px;
+      background: rgba(0,0,0,0.2); margin-bottom: 6px;
+    }
+    .glossary summary { cursor: pointer; font-weight: 700; font-size: 13.5px; }
+    .glossary p { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
+
+    /* Help chips */
+    .help {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 18px; height: 18px; border-radius: 999px; font-size: 11px; font-weight: 800;
+      border: 1px solid rgba(148,163,184,0.5); color: var(--muted); cursor: help;
+      position: relative;
+    }
+    .help:hover::after, .help:focus::after {
+      content: attr(data-tip);
+      position: absolute; z-index: 20; left: 50%; transform: translateX(-50%);
+      bottom: calc(100% + 8px); width: min(260px, 70vw);
+      background: #0f172a; border: 1px solid var(--border); color: var(--text);
+      padding: 8px 10px; border-radius: 10px; font-size: 12px; font-weight: 500;
+      box-shadow: var(--shadow); white-space: normal; line-height: 1.35;
+      pointer-events: none;
+    }
+
+    /* Collapsible advanced */
+    details.adv > summary {
+      list-style: none; cursor: pointer; font-weight: 800; font-size: 0.95rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    details.adv > summary::-webkit-details-marker { display: none; }
+    details.adv > summary::after { content: '▼'; font-size: 11px; color: var(--muted); }
+    details.adv[open] > summary::after { content: '▲'; }
+    details.adv .adv-body { margin-top: 12px; }
+
+    .log {
+      max-height: 260px; overflow-y: auto;
+      font-family: 'JetBrains Mono', monospace; font-size: 11.5px; line-height: 1.45;
+      background: rgba(0,0,0,0.35); border: 1px solid var(--border); border-radius: 10px; padding: 10px;
+    }
+    .log-line { padding: 4px 0; border-bottom: 1px dashed rgba(255,255,255,0.05); }
+    .k-heartbeat { color: var(--cyan); }
+    .k-risk_block, .k-kill_switch { color: var(--rose); }
+    .k-oos_status { color: var(--amber); }
+    .k-order_intent, .k-order_result { color: var(--purple); }
+    .k-note { color: var(--muted); }
+    .muted { color: var(--muted); }
+
+    /* Toasts */
+    #toasts {
+      position: fixed; right: 16px; bottom: 16px; z-index: 50;
+      display: flex; flex-direction: column-reverse; gap: 10px;
+      width: min(380px, calc(100vw - 24px)); pointer-events: none;
+    }
+    .toast {
+      pointer-events: auto;
+      border-radius: 14px; padding: 12px 14px; border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.96); box-shadow: var(--shadow);
+      animation: slideIn .25s ease;
+    }
+    .toast.danger { border-color: rgba(251,113,133,0.5); }
+    .toast.warning { border-color: rgba(251,191,36,0.5); }
+    .toast.info { border-color: rgba(34,211,238,0.4); }
+    .toast h4 { margin: 0 0 4px; font-size: 13.5px; font-weight: 800; display: flex; justify-content: space-between; gap: 8px; }
+    .toast p { margin: 0; font-size: 12.5px; color: var(--soft); }
+    .toast .x { border: 0; background: transparent; color: var(--muted); font-size: 16px; line-height: 1; padding: 0 2px; }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+    /* Welcome modal */
+    .modal-bg {
+      position: fixed; inset: 0; z-index: 60; background: rgba(2,6,23,0.72);
+      display: none; align-items: center; justify-content: center; padding: 16px;
+    }
+    .modal-bg.show { display: flex; }
+    .modal {
+      width: min(520px, 100%); background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 18px; padding: 22px; box-shadow: var(--shadow);
+    }
+    .modal h2 { margin: 0 0 8px; font-size: 1.25rem; }
+    .modal p { margin: 0 0 10px; color: var(--soft); font-size: 0.95rem; }
+    .modal ul { margin: 0 0 14px; padding-left: 1.15rem; color: var(--soft); }
+    .modal li { margin-bottom: 6px; }
+    .modal .row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+
+    .footer {
+      margin-top: 16px; font-size: 12.5px; color: var(--muted);
+      display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center;
+    }
+    .footer .sep { opacity: 0.4; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <h1>Торгарик — панель статуса</h1>
+      <p>Только просмотр. Ордера отсюда <b>не</b> отправляются. Обновление каждые 5 сек.</p>
+    </div>
+    <div class="top-actions">
+      <span class="pill info" id="conn-pill">подключение…</span>
+      <span class="pill" id="shell-pill">shell: …</span>
+      <button class="btn" type="button" id="btn-help">Подсказки</button>
+      <button class="btn ghost" type="button" id="btn-welcome">Как это читать</button>
+    </div>
+  </div>
+
+  <!-- Main verdict -->
+  <section class="hero bad" id="hero" aria-live="polite">
+    <div class="hero-kicker" id="hero-kicker">Главный ответ</div>
+    <div class="hero-q" id="hero-q">Можно ли сейчас торговать реальными деньгами?</div>
+    <div class="hero-a" id="hero-a">Загрузка…</div>
+    <div class="hero-plain" id="hero-plain"></div>
+    <div class="hero-flags" id="hero-flags"></div>
+    <div class="tip danger" id="hero-tip">
+      Красный статус — это <b>защита</b>, а не поломка. Система специально не даёт включить авто-торговлю, пока история не показывает прибыль.
+    </div>
+    <div class="reasons" id="block-reasons"></div>
+  </section>
+
+  <!-- Metrics -->
+  <section class="grid grid-4" style="margin-bottom:14px;">
+    <div class="card metric">
+      <div class="label">Счёт (equity) <span class="help" tabindex="0" data-tip="Текущая оценка капитала из risk shell (по последнему heartbeat). Не путать с банком на бирже, если shell выключен.">?</span></div>
+      <div class="value" id="eq">—</div>
+      <div class="sub" id="eq-sub">дневной PnL / позиции</div>
+      <div class="hint" id="eq-hint">Запустите shell, чтобы видеть живые цифры.</div>
+    </div>
+    <div class="card metric">
+      <div class="label">Часы навыка (S1) <span class="help" tabindex="0" data-tip="S1 — основной «денежный путь»: ручная практика и дисциплина. Цель — около 15 часов в неделю, а не авто-бот.">?</span></div>
+      <div class="value" id="s1h">—</div>
+      <div class="sub" id="s1h-sub">цель 15 ч / неделя</div>
+      <div class="bar" id="s1-bar"><i id="s1-bar-i"></i></div>
+      <div class="hint" id="s1-hint">Записывайте часы командой s1_daily_log.</div>
+    </div>
+    <div class="card metric">
+      <div class="label">Качество стратегии (Sharpe) <span class="help" tabindex="0" data-tip="Sharpe — доходность с учётом риска. Меньше 0 значит стратегия в среднем теряла на тестовых данных. Нужно > 0 для live.">?</span></div>
+      <div class="value" id="oos-s">—</div>
+      <div class="sub" id="oos-s-sub">OOS / out-of-sample</div>
+      <div class="hint" id="oos-s-hint">Нужно больше 0, иначе live закрыт.</div>
+    </div>
+    <div class="card metric">
+      <div class="label">Прибыль на тесте (PnL) <span class="help" tabindex="0" data-tip="PnL — прибыль/убыток на данных, которые стратегия «не видела» при подборе параметров. Отрицательный PnL блокирует live.">?</span></div>
+      <div class="value" id="oos-p">—</div>
+      <div class="sub" id="oos-p-sub">файл отчёта</div>
+      <div class="hint" id="oos-p-hint">Нужно больше 0, иначе live закрыт.</div>
+    </div>
+  </section>
+
+  <section class="grid grid-2" style="margin-bottom:14px;">
+    <!-- What to do -->
+    <div class="card">
+      <div class="card-h">
+        <h2>Что сделать сейчас</h2>
+        <span class="meta">пошагово, от важного</span>
+      </div>
+      <div id="actions">
+        <div class="muted">Загрузка рекомендаций…</div>
+      </div>
+      <div class="tip" id="actions-tip">
+        Не знаете с чего начать? Сначала shell (щит), потом S1-часы, потом разбор красного OOS. Live — в самом конце и только осознанно.
+      </div>
+    </div>
+
+    <!-- Learning / glossary -->
+    <div class="card">
+      <div class="card-h">
+        <h2>Словарь простыми словами</h2>
+        <span class="meta">нажмите строку</span>
+      </div>
+      <div class="glossary" id="glossary">
+        <details open>
+          <summary>Live vs dry-run (учебный режим)</summary>
+          <p><b>Dry-run / paper</b> — бот смотрит цены и ведёт журнал, но <b>не</b> тратит реальные деньги. <b>Live</b> — реальные ордера. По умолчанию всё в dry-run.</p>
+        </details>
+        <details>
+          <summary>Risk shell (щит)</summary>
+          <p>Программа-сторож: лимиты, дневной стоп-убыток, журнал, проверка сигналов. Работает командой <code>cargo run -p ml-trader -- --mode shell</code>.</p>
+        </details>
+        <details>
+          <summary>OOS / holdout / kill-switch</summary>
+          <p><b>OOS</b> — проверка стратегии на «невидимых» данных. <b>Holdout</b> — самый честный хвост истории. <b>Kill-switch</b> — авто-блокировка live, если цифры красные или NaN.</p>
+        </details>
+        <details>
+          <summary>S1 (skill path)</summary>
+          <p>Главный путь заработка: ваши часы практики + дисциплина. Бот — щит и микроскоп, а не «банкомат».</p>
+        </details>
+        <details>
+          <summary>Почему дашборд не торгует?</summary>
+          <p>Это <b>read-only</b> интерфейс. Он только читает journal и отчёты. Ордера возможны только из shell/live CLI после жёстких проверок.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid grid-2" style="margin-bottom:14px;">
+    <div class="card">
+      <div class="card-h">
+        <h2>Капитал во времени</h2>
+        <span class="meta" id="chart-meta">—</span>
+      </div>
+      <canvas id="eqChart" height="120"></canvas>
+      <div class="tip" id="chart-tip">График строится по heartbeat из журнала. Пусто? Shell ещё не писал equity.</div>
+    </div>
+    <div class="card">
+      <div class="card-h">
+        <h2>Детали проверки (OOS)</h2>
+        <span class="meta" id="oos-meta">—</span>
+      </div>
+      <div class="mono" style="font-size:12.5px; line-height:1.65;" id="oos-detail">—</div>
+      <div class="tip warn" style="margin-top:12px;">
+        Даже «зелёный» OOS не включает live сам. Нужны ключи, <code>CONFIRM_LIVE=1</code> и чеклист <code>docs/LIVE_UNLOCK.md</code>.
+      </div>
+    </div>
+  </section>
+
+  <!-- Advanced / optional -->
+  <section class="card" style="margin-bottom:14px;">
+    <details class="adv" id="adv-journal">
+      <summary>Журнал и тех. события <span class="meta" style="font-weight:500;color:var(--muted);margin-left:8px;">для любопытных</span></summary>
+      <div class="adv-body grid grid-2">
+        <div>
+          <div class="card-h"><h2 style="font-size:0.9rem;">Последние события</h2><span class="meta">новые сверху</span></div>
+          <div class="log" id="j-log"></div>
+        </div>
+        <div>
+          <div class="card-h"><h2 style="font-size:0.9rem;">Отклонённые сигналы (risk_block)</h2></div>
+          <div class="log" id="rb-log"><div class="muted">пока пусто — это хорошо</div></div>
+          <div class="card-h" style="margin-top:14px;"><h2 style="font-size:0.9rem;">S1 и политика</h2></div>
+          <div class="mono" style="font-size:12px; line-height:1.7;" id="s1-detail">—</div>
+          <div class="muted" style="margin-top:8px; font-size:12.5px;" id="policy">—</div>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <div class="footer">
+    <span>Обновление: <span id="footer-ts">—</span></span>
+    <span class="sep">·</span>
+    <span>Команды: <code>bash scripts/ready.sh</code></span>
+    <span class="sep">·</span>
+    <span>Документы: <a href="#" id="link-docs" title="см. docs/ в репозитории">docs/QUICK_START.md</a></span>
+    <span class="sep">·</span>
+    <button class="btn ghost" type="button" id="btn-reset-tips" style="padding:4px 8px;font-size:12px;">Сбросить подсказки</button>
+  </div>
+
+  <div id="toasts" aria-live="assertive"></div>
+
+  <div class="modal-bg" id="welcome" role="dialog" aria-modal="true" aria-labelledby="welcome-title">
+    <div class="modal">
+      <h2 id="welcome-title">Как читать этот экран за 30 секунд</h2>
+      <p>Это <b>не торговый терминал</b>. Это «приборная панель безопасности».</p>
+      <ul>
+        <li><b>Большой блок сверху</b> — можно ли live-автоторговлю. Если НЕТ — деньги автоматом не уйдут.</li>
+        <li><b>Четыре плитки</b> — капитал, ваши часы практики, качество стратегии, прибыль на тесте.</li>
+        <li><b>Что сделать сейчас</b> — конкретные шаги и команды (можно скопировать).</li>
+        <li><b>Словарь</b> — если термин незнаком, раскройте строку.</li>
+      </ul>
+      <p class="muted" style="font-size:13px;">Подсказки можно снова открыть кнопкой «Как это читать».</p>
+      <div class="row">
+        <button class="btn ghost" type="button" id="welcome-skip">Понятно, закрыть</button>
+        <button class="btn primary" type="button" id="welcome-ok">Больше не показывать</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const LS_WELCOME = 'torgarik_welcome_v1';
+    const LS_TOASTS = 'torgarik_toasts_dismissed_v1';
+    const dismissed = new Set(JSON.parse(localStorage.getItem(LS_TOASTS) || '[]'));
+
+    const chart = new Chart(document.getElementById('eqChart').getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [{
+          data: [],
+          borderColor: '#22d3ee',
+          borderWidth: 2,
+          backgroundColor: 'rgba(34,211,238,0.08)',
+          fill: true,
+          tension: 0.25,
+          pointRadius: 0,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#94a3b8', maxTicksLimit: 6 }, grid: { color: 'rgba(255,255,255,0.04)' } },
+          y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.04)' } },
+        }
+      }
+    });
+
+    function fmt(n, d = 2) {
+      if (n === null || n === undefined || Number.isNaN(Number(n))) return '—';
+      return Number(n).toFixed(d);
+    }
+    function esc(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c =>
+        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+    function moneyColor(n) {
+      if (n === null || n === undefined || Number.isNaN(Number(n))) return 'var(--muted)';
+      return Number(n) >= 0 ? 'var(--green)' : 'var(--rose)';
+    }
+
+    function renderJournalLine(e) {
+      const kind = e.kind || '?';
+      const ts = (e.ts || '').toString().slice(11, 19);
+      let body = '';
+      if (kind === 'heartbeat') body = `капитал=${fmt(e.equity)} день=${fmt(e.daily_pnl)} поз=${e.n_positions} режим=${e.mode}`;
+      else if (kind === 'risk_block') body = `${e.reason}: ${e.detail}`;
+      else if (kind === 'kill_switch') body = `стоп дня: pnl=${fmt(e.daily_pnl)} капитал=${fmt(e.equity)} лимит=${e.limit}`;
+      else if (kind === 'oos_status') body = `блок=${e.blocking} sharpe=${fmt(e.avg_sharpe, 3)} pnl=${fmt(e.avg_pnl)}`;
+      else if (kind === 'order_intent') body = `${e.side} ${e.coin} размер=${fmt(e.size, 4)} dry=${e.dry_run}`;
+      else if (kind === 'order_result') body = `${e.coin} ${e.status} filled=${fmt(e.filled, 4)} ok=${e.ok}`;
+      else if (kind === 'external_signal') body = `${e.side} ${e.coin} от=${e.source}`;
+      else if (kind === 'note') body = e.text || '';
+      else if (kind === 'anomaly') body = `${e.coin} ${e.name}=${fmt(e.value, 6)}`;
+      else body = JSON.stringify(e).slice(0, 120);
+      return `<div class="log-line"><span class="muted">[${esc(ts)}]</span> <span class="k-${esc(kind)}">${esc(kind)}</span> ${esc(body)}</div>`;
+    }
+
+    function flag(okish, goodLabel, badLabel, invertBad) {
+      // invertBad: true means value=true is "blocked/bad"
+      if (invertBad) {
+        return okish
+          ? `<span class="pill bad">⛔ ${esc(badLabel)}</span>`
+          : `<span class="pill ok">✓ ${esc(goodLabel)}</span>`;
+      }
+      return okish
+        ? `<span class="pill ok">✓ ${esc(goodLabel)}</span>`
+        : `<span class="pill bad">⛔ ${esc(badLabel)}</span>`;
+    }
+
+    function showToast(alert) {
+      if (!alert || !alert.id) return;
+      if (dismissed.has(alert.id)) return;
+      if (document.querySelector(`[data-toast-id="${alert.id}"]`)) return;
+      const el = document.createElement('div');
+      el.className = `toast ${esc(alert.level || 'info')}`;
+      el.dataset.toastId = alert.id;
+      el.innerHTML = `
+        <h4>
+          <span>${esc(alert.title || 'Уведомление')}</span>
+          <button type="button" class="x" aria-label="Закрыть">×</button>
+        </h4>
+        <p>${esc(alert.body || '')}</p>
+      `;
+      el.querySelector('.x').addEventListener('click', () => {
+        dismissed.add(alert.id);
+        localStorage.setItem(LS_TOASTS, JSON.stringify([...dismissed]));
+        el.remove();
+      });
+      document.getElementById('toasts').appendChild(el);
+      if (!alert.sticky) {
+        setTimeout(() => { if (el.isConnected) el.remove(); }, 12000);
+      }
+    }
+
+    function copyText(text, btn) {
+      navigator.clipboard.writeText(text).then(() => {
+        const old = btn.textContent;
+        btn.textContent = 'Скопировано';
+        setTimeout(() => { btn.textContent = old; }, 1200);
+      }).catch(() => {
+        btn.textContent = 'Ctrl+C вручную';
+      });
+    }
+
+    function renderActions(list) {
+      const box = document.getElementById('actions');
+      if (!list || !list.length) {
+        box.innerHTML = '<div class="muted">Нет особых действий — следите за статусом.</div>';
+        return;
+      }
+      const sorted = [...list].sort((a, b) => (a.priority ?? 99) - (b.priority ?? 99));
+      box.innerHTML = sorted.map((a, i) => `
+        <div class="action">
+          <h3><span class="n">${i + 1}</span>${esc(a.title || 'Шаг')}</h3>
+          <p>${esc(a.detail || '')}</p>
+          ${a.cmd ? `<div class="cmd-row">
+            <code>${esc(a.cmd)}</code>
+            <button type="button" class="btn copy-btn" data-cmd="${esc(a.cmd)}">Копировать</button>
+          </div>` : ''}
+        </div>
+      `).join('');
+      box.querySelectorAll('[data-cmd]').forEach(btn => {
+        btn.addEventListener('click', () => copyText(btn.getAttribute('data-cmd'), btn));
+      });
+    }
+
+    async function tick() {
+      try {
+        const res = await fetch('/api/status');
+        if (!res.ok) throw new Error('status ' + res.status);
+        const d = await res.json();
+
+        document.getElementById('conn-pill').textContent = 'онлайн · ' + (d.ts || '').slice(11, 19) + ' UTC';
+        document.getElementById('conn-pill').className = 'pill ok';
+        document.getElementById('footer-ts').textContent = (d.ts || '—').replace('T', ' ').slice(0, 19);
+
+        const shell = d.shell || {};
+        const s1 = d.s1 || {};
+        const bt = d.backtest || {};
+        const block = d.block || {};
+
+        // Hero
+        const blocked = !!block.live_auto_alpha_blocked;
+        const hero = document.getElementById('hero');
+        hero.className = 'hero ' + (blocked ? 'bad' : 'green');
+        document.getElementById('hero-q').textContent =
+          block.money_question_ru || 'Можно ли сейчас торговать реальными деньгами через авто-стратегию?';
+        document.getElementById('hero-a').textContent =
+          block.money_answer_ru || (blocked ? 'НЕТ' : 'УСЛОВНО');
+        document.getElementById('hero-plain').textContent =
+          block.verdict_plain_ru || block.summary_ru || '';
+        document.getElementById('hero-tip').className = 'tip ' + (blocked ? 'danger' : 'warn');
+        document.getElementById('hero-tip').innerHTML = blocked
+          ? 'Красный статус — это <b>защита</b>, а не поломка. Авто-торговля на реальные деньги специально выключена.'
+          : 'Зелёный OOS не включает live сам. Нужны ключи, <code>CONFIRM_LIVE=1</code> и полный чеклист.';
+
+        document.getElementById('hero-flags').innerHTML = [
+          flag(block.live_auto_alpha_blocked, 'авто live закрыт', 'авто live закрыт', true),
+          flag(block.live_shell_execute_blocked, 'live execute закрыт', 'live execute закрыт', true),
+          flag(block.paper_shell_allowed, 'учебный shell можно', 'учебный shell нельзя', false),
+          flag(block.s1_manual_allowed, 'S1 (ручной путь) можно', 'S1 нельзя', false),
+        ].join('');
+
+        const reasons = block.reasons || [];
+        document.getElementById('block-reasons').innerHTML = reasons.length
+          ? reasons.map(r => {
+              const sev = r.severity || 'info';
+              const label = sev === 'high' ? 'важно' : sev === 'medium' ? 'внимание' : 'инфо';
+              return `<div class="reason"><span class="sev sev-${esc(sev)}">${esc(label)}</span><span>${esc(r.text)}</span></div>`;
+            }).join('')
+          : '<div class="reason muted">Причин нет — странно; проверьте API.</div>';
+
+        // Alerts / toasts
+        (block.alerts || []).forEach(showToast);
+
+        // Actions
+        renderActions(block.next_actions_ru || []);
+
+        // Shell
+        const st = shell.status || 'unknown';
+        const sp = document.getElementById('shell-pill');
+        const stRu = st === 'running' ? 'работает' : st === 'stale' ? 'застыл' : st === 'stopped' ? 'выключен' : st;
+        sp.textContent = `shell: ${stRu} · ${shell.mode || '?'}`;
+        sp.className = 'pill ' + (st === 'running' ? 'ok' : st === 'stale' ? 'warn' : 'bad');
+
+        document.getElementById('eq').textContent = '$' + fmt(shell.equity);
+        document.getElementById('eq').style.color = moneyColor(shell.daily_pnl);
+        document.getElementById('eq-sub').textContent =
+          `за день ${fmt(shell.daily_pnl)} · позиций ${shell.n_positions ?? 0} · возраст сигнала ${shell.heartbeat_age_secs ?? '—'} с`;
+        document.getElementById('eq-hint').textContent = st === 'running'
+          ? 'Shell жив: цифры обновляются из журнала.'
+          : 'Shell не активен. Запустите: cargo run -p ml-trader -- --mode shell';
+
+        // S1
+        const wh = Number(s1.week_hours || 0);
+        const wt = Number(s1.week_target || 15);
+        document.getElementById('s1h').textContent = fmt(wh, 1) + ' ч';
+        document.getElementById('s1h-sub').textContent =
+          `нужно ещё ${fmt(s1.need_hours_week, 1)} ч · shell-дни ${s1.shell_days_7 ?? 0}/${s1.shell_target_7 ?? 5}`;
+        const pct = Math.max(0, Math.min(100, (wh / Math.max(wt, 1e-9)) * 100));
+        const bar = document.getElementById('s1-bar');
+        document.getElementById('s1-bar-i').style.width = pct + '%';
+        bar.className = 'bar' + (wh < wt * 0.5 ? ' bad' : '');
+        document.getElementById('s1-hint').textContent = wh >= wt
+          ? 'Норма недели выполнена — так держать.'
+          : 'Запишите практику: python3 scripts/s1_daily_log.py --hours 2 --track skill --shell --note "..."';
+
+        // OOS metrics
+        const oosColor = bt.oos_blocking ? 'var(--rose)' : 'var(--green)';
+        document.getElementById('oos-s').style.color = bt.available ? oosColor : 'var(--muted)';
+        document.getElementById('oos-p').style.color = bt.available ? oosColor : 'var(--muted)';
+        document.getElementById('oos-s').textContent = bt.available ? fmt(bt.avg_test_sharpe, 3) : 'нет данных';
+        document.getElementById('oos-p').textContent = bt.available ? fmt(bt.avg_test_pnl) : 'нет данных';
+        document.getElementById('oos-s-sub').textContent =
+          `возраст отчёта ${bt.report_age_human || '—'} · ${bt.report_stale ? 'УСТАРЕЛ' : 'свежий'}`;
+        document.getElementById('oos-p-sub').textContent =
+          `${bt.file || '—'} · окон ${bt.n_folds ?? '—'}`;
+        document.getElementById('oos-s-hint').textContent = !bt.available
+          ? 'Нет отчёта — live закрыт «на всякий случай».'
+          : (bt.avg_test_sharpe < 0
+            ? 'Sharpe < 0: стратегия на тесте была убыточной по риску.'
+            : 'Sharpe ≥ 0 — хороший знак, но смотрите и PnL, и holdout.');
+        document.getElementById('oos-p-hint').textContent = !bt.available
+          ? 'Запустите backtester (см. «Что сделать сейчас»).'
+          : (bt.avg_test_pnl < 0
+            ? 'Отрицательный PnL — live специально заблокирован.'
+            : 'PnL на тесте не отрицательный.');
+
+        document.getElementById('oos-meta').textContent = bt.oos_blocking
+          ? 'БЛОКИРУЕТ LIVE'
+          : (bt.oos_ready_for_live ? 'МЕТРИКИ ЗЕЛЁНЫЕ' : 'не готов');
+        document.getElementById('oos-detail').innerHTML = bt.available ? `
+          <div><b>Вердикт:</b> ${esc(bt.verdict)}</div>
+          <div>Файл: ${esc(bt.file)} · создан: ${esc(bt.generated_at || 'mtime')}</div>
+          <div>Суммарный PnL: ${fmt(bt.test_total_pnl)} · прибыльных окон: ${esc(bt.profitable_test_folds)}</div>
+          <div>Holdout блокирует: <b>${bt.holdout_blocking ? 'да' : 'нет'}</b></div>
+          <div>Причины: ${esc((bt.block_reasons || []).join('; ') || 'нет')}</div>
+          <div class="muted" style="margin-top:6px;">Правило: Sharpe&lt;0 ИЛИ PnL&lt;0 ИЛИ holdout красный → live locked</div>
+        ` : `<div class="muted">${esc(bt.message || 'Нет отчёта walk-forward')}</div>`;
+
+        // Risk blocks / journal
+        const rbs = d.risk_blocks || [];
+        document.getElementById('rb-log').innerHTML = rbs.length
+          ? rbs.map(renderJournalLine).join('')
+          : '<div class="muted">Нет отклонённых сигналов — спокойно</div>';
+        document.getElementById('j-log').innerHTML = (d.journal || []).map(renderJournalLine).join('')
+          || '<div class="muted">Журнал пуст. Запустите shell.</div>';
+
+        document.getElementById('s1-detail').innerHTML = `
+          <div>Неделя: <b>${fmt(s1.week_hours, 1)}</b> / ${s1.week_target} ч (старт ${esc(s1.week_start || '—')})</div>
+          <div>Месяц: <b>${fmt(s1.month_hours, 1)}</b> / ${s1.month_target_hours} ч</div>
+          <div>Дней со shell за 7д: <b>${s1.shell_days_7 ?? 0}</b> / ${s1.shell_target_7 ?? 5}</div>
+        `;
+        const pol = d.policy || {};
+        document.getElementById('policy').textContent =
+          `Разрешено: ${(pol.on_ru || pol.on || []).join(', ') || '—'} · Заморожено: ${(pol.frozen_ru || pol.frozen || []).join(', ') || '—'}`;
+
+        // Chart
+        const es = d.equity_series || {};
+        chart.data.labels = es.labels || [];
+        chart.data.datasets[0].data = es.values || [];
+        chart.update('none');
+        document.getElementById('chart-meta').textContent =
+          `${(es.values || []).length} точек · ${shell.source === 'journal_heartbeat' ? 'из журнала' : (shell.source || '')}`;
+        document.getElementById('chart-tip').textContent = (es.values || []).length
+          ? 'Линия — equity из heartbeat. Резкие скачки = смена режима/данных, не «сигнал купить».'
+          : 'Пока нет heartbeat — график пуст. Включите risk shell.';
+      } catch (e) {
+        document.getElementById('conn-pill').textContent = 'нет связи с API';
+        document.getElementById('conn-pill').className = 'pill bad';
+        showToast({
+          id: 'api_offline',
+          level: 'danger',
+          title: 'Дашборд не получает данные',
+          body: 'Проверьте, что процесс dashboard запущен и вы открыли http://127.0.0.1:8080',
+          sticky: true,
+        });
+      }
+    }
+
+    // Welcome + help
+    const welcome = document.getElementById('welcome');
+    function openWelcome() { welcome.classList.add('show'); }
+    function closeWelcome(persist) {
+      welcome.classList.remove('show');
+      if (persist) localStorage.setItem(LS_WELCOME, '1');
+    }
+    document.getElementById('welcome-ok').addEventListener('click', () => closeWelcome(true));
+    document.getElementById('welcome-skip').addEventListener('click', () => closeWelcome(false));
+    document.getElementById('btn-welcome').addEventListener('click', openWelcome);
+    document.getElementById('btn-help').addEventListener('click', () => {
+      document.getElementById('glossary').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const first = document.querySelector('#glossary details');
+      if (first) first.open = true;
+    });
+    document.getElementById('btn-reset-tips').addEventListener('click', () => {
+      localStorage.removeItem(LS_WELCOME);
+      localStorage.removeItem(LS_TOASTS);
+      dismissed.clear();
+      document.getElementById('toasts').innerHTML = '';
+      openWelcome();
+      tick();
+    });
+    if (!localStorage.getItem(LS_WELCOME)) openWelcome();
+
+    tick();
+    setInterval(tick, 5000);
+  </script>
+</body>
+</html>

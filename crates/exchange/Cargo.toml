@@ -1,0 +1,38 @@
+[package]
+name = "trading-exchange"
+version = { workspace = true }
+edition = { workspace = true }
+rust-version = { workspace = true }
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+trading-common = { workspace = true }
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+ethers = { workspace = true }
+secp256k1 = { workspace = true }
+tiny-keccak = { workspace = true }
+regex = { workspace = true }
+chrono = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+futures-util = { workspace = true }
+metrics = { workspace = true }
+sha3 = "0.10"
+uuid = { workspace = true }
+rmp = { workspace = true }
+rmpv = { workspace = true }
+hex = { workspace = true }
+
+[lib]
+name = "trading_exchange"
+path = "src/lib.rs"

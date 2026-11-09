@@ -1,0 +1,7 @@
+[
+  {
+    "address": "0x0000000000000000000000000000000000000001",
+    "label": "Example wallet to watch (replace with a public address you want to follow)",
+    "weight": 0.5
+  }
+]
